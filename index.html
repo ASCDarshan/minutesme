@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#8a68cf" />
+    <meta name="description" content="MinuteMe - AI-powered meeting minutes recorder and transcription tool">
+    
+    <!-- Fonts: Roboto (MUI default) and Inter (custom brand font) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    
+    <title>MinuteMe - AI Meeting Minutes</title>
+    
+    <style>
+      /* Initial styles to prevent layout shift */
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', 'Roboto', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      /* Hide scrollbar during loading state */
+      html.loading {
+        overflow: hidden;
+      }
+      
+      /* Full-screen loader */
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+        z-index: 9999;
+        transition: opacity 0.3s ease-out;
+      }
+      
+      #loading-screen.fade-out {
+        opacity: 0;
+      }
+      
+      /* Loader animation */
+      .loader {
+        display: inline-block;
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(138, 104, 207, 0.2);
+        border-radius: 50%;
+        border-top-color: #8a68cf;
+        animation: spin 1s ease-in-out infinite;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      .loader-text {
+        margin-top: 20px;
+        font-size: 16px;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading screen -->
+    <div id="loading-screen">
+      <div class="loader"></div>
+      <div class="loader-text">Loading MinuteMe...</div>
+    </div>
+    
+    <!-- Root element for React -->
+    <div id="root"></div>
+    
+    <script type="module" src="/src/main.jsx"></script>
+    
+    <script>
+      // Remove loading screen once app is loaded
+      window.addEventListener('load', function() {
+        const loadingScreen = document.getElementById('loading-screen');
+        document.documentElement.classList.remove('loading');
+        
+        // Fade out and remove loading screen
+        setTimeout(() => {
+          loadingScreen.classList.add('fade-out');
+          setTimeout(() => {
+            loadingScreen.style.display = 'none';
+          }, 300);
+        }, 500);
+      });
+    </script>
+  </body>
+</html>
