@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useRef } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -13,7 +14,6 @@ import {
   Grid,
   Divider,
   Switch,
-  Paper,
   List,
   ListItem,
   ListItemText,
@@ -41,17 +41,12 @@ import {
   CloudDownload,
   DeleteForever,
   NotificationsActive,
-  DarkMode,
   Edit,
   Camera,
   VolumeUp,
-  Security,
   VerifiedUser,
-  AlternateEmail,
-  Brightness4,
   SettingsVoice,
   Speed,
-  CloudUpload,
   CheckCircle,
   Close,
   Add as AddIcon,
@@ -63,12 +58,11 @@ import {
   Timer
 } from '@mui/icons-material';
 
-// Animated Stat Card
 const StatCard = ({ icon, title, value, color, delay = 0 }) => {
   const theme = useTheme();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
-  
+
   return (
     <Box ref={ref}>
       <motion.div
@@ -110,12 +104,12 @@ const StatCard = ({ icon, title, value, color, delay = 0 }) => {
             >
               {icon}
             </Box>
-            
+
             <Typography variant="subtitle1" fontWeight={600} color="text.primary">
               {title}
             </Typography>
           </Box>
-          
+
           <Typography variant="h4" fontWeight={700} color={color} sx={{ mb: 1 }}>
             {value}
           </Typography>
@@ -125,12 +119,11 @@ const StatCard = ({ icon, title, value, color, delay = 0 }) => {
   );
 };
 
-// Setting Item Component
 const SettingItem = ({ icon, primary, secondary, action, divider = true, delay = 0 }) => {
   const theme = useTheme();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
-  
+
   return (
     <Box ref={ref}>
       <motion.div
@@ -138,8 +131,8 @@ const SettingItem = ({ icon, primary, secondary, action, divider = true, delay =
         animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
         transition={{ duration: 0.5, delay: delay * 0.1 }}
       >
-        <ListItem 
-          sx={{ 
+        <ListItem
+          sx={{
             py: 2,
             borderBottom: divider ? `1px solid ${theme.palette.divider}` : 'none',
             '&:hover': {
@@ -151,16 +144,16 @@ const SettingItem = ({ icon, primary, secondary, action, divider = true, delay =
           <ListItemIcon sx={{ color: theme.palette.primary.main }}>
             {icon}
           </ListItemIcon>
-          
-          <ListItemText 
+
+          <ListItemText
             primary={
               <Typography variant="body1" fontWeight={500}>
                 {primary}
               </Typography>
-            } 
-            secondary={secondary} 
+            }
+            secondary={secondary}
           />
-          
+
           <ListItemSecondaryAction>
             {action}
           </ListItemSecondaryAction>
@@ -170,12 +163,11 @@ const SettingItem = ({ icon, primary, secondary, action, divider = true, delay =
   );
 };
 
-// Pricing Card Component
 const PricingCard = ({ title, price, features, isActive, delay = 0 }) => {
   const theme = useTheme();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
-  
+
   return (
     <Box ref={ref}>
       <motion.div
@@ -191,7 +183,7 @@ const PricingCard = ({ title, price, features, isActive, delay = 0 }) => {
             height: '100%',
             border: isActive ? `2px solid ${theme.palette.primary.main}` : `1px solid ${theme.palette.divider}`,
             position: 'relative',
-            boxShadow: isActive 
+            boxShadow: isActive
               ? `0 10px 30px ${alpha(theme.palette.primary.main, 0.2)}`
               : '0 4px 20px rgba(0,0,0,0.05)',
             display: 'flex',
@@ -221,18 +213,18 @@ const PricingCard = ({ title, price, features, isActive, delay = 0 }) => {
               Current Plan
             </Box>
           )}
-          
+
           <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
             <Typography variant="h6" fontWeight={600} gutterBottom>
               {title}
             </Typography>
-            
+
             <Box sx={{ mb: 3 }}>
-              <Typography 
-                variant="h3" 
-                component="div" 
+              <Typography
+                variant="h3"
+                component="div"
                 fontWeight={700}
-                sx={{ 
+                sx={{
                   color: isActive ? theme.palette.primary.main : 'text.primary',
                 }}
               >
@@ -242,29 +234,29 @@ const PricingCard = ({ title, price, features, isActive, delay = 0 }) => {
                 </Typography>
               </Typography>
             </Box>
-            
+
             <Divider sx={{ my: 2 }} />
-            
+
             <List sx={{ mb: 2, flexGrow: 1 }}>
               {features.map((feature, index) => (
                 <ListItem key={index} dense disableGutters sx={{ py: 1 }}>
                   <ListItemIcon sx={{ minWidth: 32 }}>
-                    <CheckCircle 
-                      fontSize="small" 
-                      sx={{ color: isActive ? theme.palette.primary.main : theme.palette.success.main }} 
+                    <CheckCircle
+                      fontSize="small"
+                      sx={{ color: isActive ? theme.palette.primary.main : theme.palette.success.main }}
                     />
                   </ListItemIcon>
-                  <ListItemText 
+                  <ListItemText
                     primary={
                       <Typography variant="body2" color={feature.highlight ? 'primary.main' : 'text.primary'} fontWeight={feature.highlight ? 600 : 400}>
                         {feature.text}
                       </Typography>
-                    } 
+                    }
                   />
                 </ListItem>
               ))}
             </List>
-            
+
             <Button
               variant={isActive ? "outlined" : "contained"}
               color={isActive ? "primary" : "primary"}
@@ -280,15 +272,12 @@ const PricingCard = ({ title, price, features, isActive, delay = 0 }) => {
   );
 };
 
-// Main Profile Component
 const Profile = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
-  
-  // State for settings and dialogs
+
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
   const [autoTranscribeEnabled, setAutoTranscribeEnabled] = useState(true);
   const [highQualityEnabled, setHighQualityEnabled] = useState(false);
   const [voiceEnhancementEnabled, setVoiceEnhancementEnabled] = useState(true);
@@ -296,47 +285,39 @@ const Profile = () => {
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [profileEditMode, setProfileEditMode] = useState(false);
   const [editedName, setEditedName] = useState('');
-  
-  // Usage stats (mock data)
-  const storageUsed = 250; // in MB
-  const storageLimit = 1000; // in MB
+
+  const storageUsed = 250;
+  const storageLimit = 1000;
   const storagePercentage = (storageUsed / storageLimit) * 100;
   const recordingMinutes = 45;
   const minutesRemaining = 60 - recordingMinutes;
   const totalMeetings = 12;
-  
-  // Handle logout
+
   const handleLogout = async () => {
     setLogoutDialogOpen(false);
     await logout();
     navigate('/login');
   };
-  
-  // Handle account deletion
+
   const handleDeleteAccount = async () => {
     setDeleteAccountDialogOpen(false);
-    // Implement account deletion logic
     alert('Account deletion will be implemented in a future update');
   };
-  
-  // Handle profile edit mode
+
   const handleEnterEditMode = () => {
     setEditedName(currentUser?.displayName || '');
     setProfileEditMode(true);
   };
-  
+
   const handleSaveProfile = () => {
-    // Implement profile update logic
     setProfileEditMode(false);
     alert('Profile update will be implemented in a future update');
   };
-  
-  // Handle cancel edit
+
   const handleCancelEdit = () => {
     setProfileEditMode(false);
   };
-  
-  // If no user is logged in, redirect to login
+
   if (!currentUser) {
     return (
       <Container maxWidth="md" sx={{ py: 8 }}>
@@ -357,8 +338,7 @@ const Profile = () => {
       </Container>
     );
   }
-  
-  // Free plan features
+
   const freePlanFeatures = [
     { text: "60 minutes of recording per month", highlight: true },
     { text: "AI-powered transcription" },
@@ -366,8 +346,7 @@ const Profile = () => {
     { text: "Basic analytics" },
     { text: "Export to PDF and Text" }
   ];
-  
-  // Pro plan features
+
   const proPlanFeatures = [
     { text: "Unlimited recording time", highlight: true },
     { text: "Advanced AI transcription" },
@@ -376,7 +355,7 @@ const Profile = () => {
     { text: "Team sharing capabilities" },
     { text: "Export to all formats" }
   ];
-  
+
   return (
     <Box
       sx={{
@@ -386,8 +365,7 @@ const Profile = () => {
         pb: 8
       }}
     >
-      {/* Background decoration */}
-      <Box 
+      <Box
         sx={{
           position: 'absolute',
           top: 0,
@@ -399,9 +377,8 @@ const Profile = () => {
           pointerEvents: 'none'
         }}
       />
-      
+
       <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1, pt: 3 }}>
-        {/* Back button */}
         <Box sx={{ mb: 4 }}>
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -417,15 +394,15 @@ const Profile = () => {
               Back to Dashboard
             </Button>
           </motion.div>
-          
+
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <Typography 
-              variant="h4" 
-              component="h1" 
+            <Typography
+              variant="h4"
+              component="h1"
               fontWeight={700}
               sx={{
                 background: `linear-gradient(135deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 100%)`,
@@ -437,27 +414,24 @@ const Profile = () => {
             </Typography>
           </motion.div>
         </Box>
-        
+
         <Grid container spacing={4}>
-          {/* Left column - Profile, Stats, Account Actions */}
           <Grid item xs={12} md={4}>
-            {/* Profile card */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <Card 
-                sx={{ 
-                  borderRadius: 4, 
+              <Card
+                sx={{
+                  borderRadius: 4,
                   overflow: 'hidden',
                   boxShadow: '0 10px 40px rgba(0,0,0,0.07)',
                   mb: 4
                 }}
               >
-                {/* Profile header with avatar */}
-                <Box 
-                  sx={{ 
+                <Box
+                  sx={{
                     p: 0,
                     position: 'relative',
                     height: 140,
@@ -467,8 +441,8 @@ const Profile = () => {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.5 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ 
-                      duration: 0.6, 
+                    transition={{
+                      duration: 0.6,
                       delay: 0.3,
                       type: "spring",
                       stiffness: 200,
@@ -518,7 +492,7 @@ const Profile = () => {
                     </Badge>
                   </motion.div>
                 </Box>
-                
+
                 <CardContent sx={{ pt: 7, pb: 3, textAlign: 'center' }}>
                   <AnimatePresence mode="wait">
                     {profileEditMode ? (
@@ -538,7 +512,7 @@ const Profile = () => {
                           size="small"
                           sx={{ mb: 2 }}
                         />
-                        
+
                         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
                           <Button
                             variant="outlined"
@@ -548,7 +522,7 @@ const Profile = () => {
                           >
                             Cancel
                           </Button>
-                          
+
                           <Button
                             variant="contained"
                             size="small"
@@ -571,22 +545,22 @@ const Profile = () => {
                           <Typography variant="h5" fontWeight={600} sx={{ mr: 1 }}>
                             {currentUser.displayName || "User"}
                           </Typography>
-                          
+
                           <Tooltip title="Edit profile">
                             <IconButton size="small" onClick={handleEnterEditMode}>
                               <Edit fontSize="small" />
                             </IconButton>
                           </Tooltip>
                         </Box>
-                        
+
                         <Typography variant="body2" color="text.secondary" gutterBottom>
                           {currentUser.email}
                         </Typography>
-                        
-                        <Chip 
-                          icon={<VerifiedUser fontSize="small" />} 
-                          label="Verified Account" 
-                          color="primary" 
+
+                        <Chip
+                          icon={<VerifiedUser fontSize="small" />}
+                          label="Verified Account"
+                          color="primary"
                           size="small"
                           variant="outlined"
                           sx={{ mt: 1 }}
@@ -597,21 +571,20 @@ const Profile = () => {
                 </CardContent>
               </Card>
             </motion.div>
-            
-            {/* Usage Stats */}
+
             <Box sx={{ mb: 4 }}>
-              <Typography 
-                variant="h6" 
-                fontWeight={600} 
+              <Typography
+                variant="h6"
+                fontWeight={600}
                 sx={{ mb: 2, display: 'flex', alignItems: 'center' }}
               >
                 <Timer sx={{ mr: 1, color: theme.palette.primary.main }} />
                 Usage Statistics
               </Typography>
-              
+
               <Grid container spacing={2}>
                 <Grid item xs={12}>
-                  <StatCard 
+                  <StatCard
                     icon={<MicNone />}
                     title="Recording Time"
                     value={`${recordingMinutes}/${60} min`}
@@ -619,9 +592,9 @@ const Profile = () => {
                     delay={1}
                   />
                 </Grid>
-                
+
                 <Grid item xs={6}>
-                  <StatCard 
+                  <StatCard
                     icon={<MusicNote />}
                     title="Meetings"
                     value={totalMeetings}
@@ -629,9 +602,9 @@ const Profile = () => {
                     delay={2}
                   />
                 </Grid>
-                
+
                 <Grid item xs={6}>
-                  <StatCard 
+                  <StatCard
                     icon={<StorageIcon />}
                     title="Storage"
                     value={`${storageUsed}MB`}
@@ -641,10 +614,9 @@ const Profile = () => {
                 </Grid>
               </Grid>
             </Box>
-            
-            {/* Storage usage */}
-            <Box 
-              sx={{ 
+
+            <Box
+              sx={{
                 mb: 4,
                 background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
                 borderRadius: 3,
@@ -657,16 +629,16 @@ const Profile = () => {
                 <Typography variant="subtitle2" color="text.secondary">
                   Storage Usage
                 </Typography>
-                
+
                 <Typography variant="subtitle2" color="text.primary" fontWeight={600}>
                   {storageUsed} MB / {storageLimit} MB
                 </Typography>
               </Box>
-              
-              <LinearProgress 
-                variant="determinate" 
-                value={storagePercentage} 
-                sx={{ 
+
+              <LinearProgress
+                variant="determinate"
+                value={storagePercentage}
+                sx={{
                   height: 8,
                   borderRadius: 4,
                   mb: 2,
@@ -677,20 +649,19 @@ const Profile = () => {
                   }
                 }}
               />
-              
+
               <Typography variant="caption" color="text.secondary">
                 Your storage includes recordings and transcriptions.
               </Typography>
             </Box>
-            
-            {/* Account actions */}
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              <Card 
-                sx={{ 
+              <Card
+                sx={{
                   borderRadius: 3,
                   border: '1px solid',
                   borderColor: theme.palette.divider,
@@ -698,25 +669,24 @@ const Profile = () => {
               >
                 <CardContent sx={{ p: 0 }}>
                   <List disablePadding>
-                    <ListItem 
+                    <ListItem
                       button
                       sx={{ py: 2 }}
                       onClick={() => {
-                        // Implement download data functionality
                         alert('This feature will be implemented in a future update');
                       }}
                     >
                       <ListItemIcon>
                         <CloudDownload color="primary" />
                       </ListItemIcon>
-                      <ListItemText 
-                        primary="Download My Data" 
-                        secondary="Get a copy of all your data" 
+                      <ListItemText
+                        primary="Download My Data"
+                        secondary="Get a copy of all your data"
                       />
                     </ListItem>
-                    
+
                     <Divider />
-                    
+
                     <ListItem
                       button
                       sx={{ py: 2 }}
@@ -725,14 +695,14 @@ const Profile = () => {
                       <ListItemIcon>
                         <LogoutIcon color="info" />
                       </ListItemIcon>
-                      <ListItemText 
-                        primary="Sign Out" 
-                        secondary="Log out of your account" 
+                      <ListItemText
+                        primary="Sign Out"
+                        secondary="Log out of your account"
                       />
                     </ListItem>
-                    
+
                     <Divider />
-                    
+
                     <ListItem
                       button
                       sx={{ py: 2 }}
@@ -741,9 +711,9 @@ const Profile = () => {
                       <ListItemIcon>
                         <DeleteForever color="error" />
                       </ListItemIcon>
-                      <ListItemText 
-                        primary="Delete Account" 
-                        secondary="Permanently remove your account and data" 
+                      <ListItemText
+                        primary="Delete Account"
+                        secondary="Permanently remove your account and data"
                         primaryTypographyProps={{ color: 'error' }}
                       />
                     </ListItem>
@@ -752,18 +722,16 @@ const Profile = () => {
               </Card>
             </motion.div>
           </Grid>
-          
-          {/* Right column - Settings and Subscription */}
+
           <Grid item xs={12} md={8}>
-            {/* App settings card */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <Card 
-                sx={{ 
-                  borderRadius: 4, 
+              <Card
+                sx={{
+                  borderRadius: 4,
                   mb: 4,
                   boxShadow: '0 10px 40px rgba(0,0,0,0.07)',
                 }}
@@ -772,7 +740,7 @@ const Profile = () => {
                   <Typography variant="h6" fontWeight={600} gutterBottom>
                     App Settings
                   </Typography>
-                  
+
                   <List disablePadding>
                     <SettingItem
                       icon={<NotificationsActive />}
@@ -787,21 +755,7 @@ const Profile = () => {
                       }
                       delay={1}
                     />
-                    
-                    <SettingItem
-                      icon={<Brightness4 />}
-                      primary="Dark Mode"
-                      secondary="Use dark theme for the application"
-                      action={
-                        <Switch
-                          edge="end"
-                          checked={darkModeEnabled}
-                          onChange={() => setDarkModeEnabled(!darkModeEnabled)}
-                        />
-                      }
-                      delay={2}
-                    />
-                    
+
                     <SettingItem
                       icon={<SettingsVoice />}
                       primary="Auto-transcribe Meetings"
@@ -815,7 +769,7 @@ const Profile = () => {
                       }
                       delay={3}
                     />
-                    
+
                     <SettingItem
                       icon={<Speed />}
                       primary="High-quality Recording"
@@ -829,7 +783,7 @@ const Profile = () => {
                       }
                       delay={4}
                     />
-                    
+
                     <SettingItem
                       icon={<VolumeUp />}
                       primary="Voice Enhancement"
@@ -848,18 +802,17 @@ const Profile = () => {
                 </CardContent>
               </Card>
             </motion.div>
-            
-            {/* Subscription Plans */}
+
             <Box sx={{ mb: 4 }}>
-              <Typography 
-                variant="h6" 
-                fontWeight={600} 
+              <Typography
+                variant="h6"
+                fontWeight={600}
                 sx={{ mb: 3, display: 'flex', alignItems: 'center' }}
               >
                 <CreditCard sx={{ mr: 1, color: theme.palette.primary.main }} />
                 Subscription Plan
               </Typography>
-              
+
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                   <PricingCard
@@ -870,7 +823,7 @@ const Profile = () => {
                     delay={1}
                   />
                 </Grid>
-                
+
                 <Grid item xs={12} md={6}>
                   <PricingCard
                     title="Pro Plan"
@@ -882,24 +835,23 @@ const Profile = () => {
                 </Grid>
               </Grid>
             </Box>
-            
-            {/* Email Notifications */}
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <Card 
-                sx={{ 
-                  borderRadius: 4, 
+              <Card
+                sx={{
+                  borderRadius: 4,
                   mb: 4,
                   boxShadow: '0 10px 40px rgba(0,0,0,0.07)',
                 }}
               >
                 <CardContent sx={{ p: 3 }}>
-                  <Box 
-                    sx={{ 
-                      display: 'flex', 
+                  <Box
+                    sx={{
+                      display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       mb: 2
@@ -911,41 +863,41 @@ const Profile = () => {
                         Email Notifications
                       </Typography>
                     </Box>
-                    
-                    <Button 
-                      variant="outlined" 
+
+                    <Button
+                      variant="outlined"
                       size="small"
                       startIcon={<Edit />}
                     >
                       Edit
                     </Button>
                   </Box>
-                  
+
                   <List disablePadding>
                     <ListItem sx={{ py: 1.5, px: 0 }}>
-                      <ListItemText 
-                        primary="Meeting Summary" 
-                        secondary="Get emailed a summary after each meeting" 
+                      <ListItemText
+                        primary="Meeting Summary"
+                        secondary="Get emailed a summary after each meeting"
                       />
                       <Switch defaultChecked edge="end" />
                     </ListItem>
-                    
+
                     <Divider />
-                    
+
                     <ListItem sx={{ py: 1.5, px: 0 }}>
-                      <ListItemText 
-                        primary="Action Items" 
-                        secondary="Receive reminders about assigned tasks" 
+                      <ListItemText
+                        primary="Action Items"
+                        secondary="Receive reminders about assigned tasks"
                       />
                       <Switch defaultChecked edge="end" />
                     </ListItem>
-                    
+
                     <Divider />
-                    
+
                     <ListItem sx={{ py: 1.5, px: 0 }}>
-                      <ListItemText 
-                        primary="Product Updates" 
-                        secondary="Learn about new features and improvements" 
+                      <ListItemText
+                        primary="Product Updates"
+                        secondary="Learn about new features and improvements"
                       />
                       <Switch edge="end" />
                     </ListItem>
@@ -953,15 +905,14 @@ const Profile = () => {
                 </CardContent>
               </Card>
             </motion.div>
-            
-            {/* Team Members (Pro feature) */}
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <Card 
-                sx={{ 
+              <Card
+                sx={{
                   borderRadius: 4,
                   background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.03)} 0%, ${alpha(theme.palette.primary.main, 0.08)} 100%)`,
                   border: `1px dashed ${alpha(theme.palette.primary.main, 0.3)}`,
@@ -975,22 +926,22 @@ const Profile = () => {
                         Team Members
                       </Typography>
                     </Box>
-                    
-                    <Chip 
-                      label="Pro Feature" 
-                      size="small" 
+
+                    <Chip
+                      label="Pro Feature"
+                      size="small"
                       color="primary"
-                      sx={{ 
+                      sx={{
                         background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
                       }}
                     />
                   </Box>
-                  
+
                   <Box sx={{ textAlign: 'center', py: 3 }}>
                     <Typography color="text.secondary" paragraph>
                       Invite team members to collaborate on meeting minutes and share recordings.
                     </Typography>
-                    
+
                     <Button
                       variant="outlined"
                       color="primary"
@@ -1007,10 +958,7 @@ const Profile = () => {
           </Grid>
         </Grid>
       </Container>
-      
-      {/* Confirmation Dialogs */}
-      
-      {/* Logout Dialog */}
+
       <Dialog
         open={logoutDialogOpen}
         onClose={() => setLogoutDialogOpen(false)}
@@ -1033,8 +981,7 @@ const Profile = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      
-      {/* Delete Account Dialog */}
+
       <Dialog
         open={deleteAccountDialogOpen}
         onClose={() => setDeleteAccountDialogOpen(false)}

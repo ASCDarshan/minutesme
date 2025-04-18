@@ -1,173 +1,205 @@
-import React, { useEffect, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useMeeting } from '../context/MeetingContext';
-import { motion, AnimatePresence } from 'framer-motion';
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { useMeeting } from "../context/MeetingContext";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Box, Button, Container, Typography, Grid, TextField, Avatar, Card,
-  CardContent, Chip, IconButton, Menu, MenuItem, ListItemIcon, Divider,
-  Tooltip, useTheme, Badge, InputAdornment, CircularProgress,
-  SvgIcon // <--- ADD THIS
-} from '@mui/material';
+  Container,
+  Box,
+  Typography,
+  Button,
+  IconButton,
+  Paper,
+  Divider,
+  Tooltip,
+  Grid,
+  Avatar,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Alert,
+  Snackbar,
+  useTheme,
+  useMediaQuery,
+  TextField,
+  InputAdornment,
+  ButtonGroup,
+  alpha,
+  Skeleton,
+  Fab,
+  Card,
+  CardContent,
+  Chip,
+  Badge,
+  CardHeader,
+} from "@mui/material";
 import {
   Add as AddIcon,
-  Search as SearchIcon,
-  MoreVert as MoreVertIcon,
+  Edit as EditIcon,
   Delete as DeleteIcon,
-  Download as DownloadIcon,
-  Share as ShareIcon,
-  MicNone,
-  CalendarToday,
-  AccessTime,
-  MoreHoriz,
+  Sort as SortIcon,
+  Search as SearchIcon,
+  Close as CloseIcon,
+  KeyboardArrowDown as KeyboardArrowDownIcon,
+  KeyboardArrowUp as KeyboardArrowUpIcon,
+  GridView as GridViewIcon,
+  ViewList as ListViewIcon,
   WavingHand,
   TaskAlt,
-  Mic
-  
-} from '@mui/icons-material';
-import moment from 'moment';
+  Mic,
+  Share as ShareIcon,
+  Download as DownloadIcon,
+  MoreVert as MoreVertIcon,
+  AccessTime,
+  FilterList,
+  CalendarToday,
+  NoteAlt,
+  EditNote,
+} from "@mui/icons-material";
+import moment from "moment";
 
-// Custom wave icon for recording visualization
-const WaveIcon = (props) => (
-  <SvgIcon {...props}>
-    <path d="M3,12 L5,12 C5.55,12 6,11.55 6,11 L6,3 C6,2.45 5.55,2 5,2 L3,2 C2.45,2 2,2.45 2,3 L2,11 C2,11.55 2.45,12 3,12 Z" />
-    <path d="M10,12 L12,12 C12.55,12 13,11.55 13,11 L13,6 C13,5.45 12.55,5 12,5 L10,5 C9.45,5 9,5.45 9,6 L9,11 C9,11.55 9.45,12 10,12 Z" />
-    <path d="M17,12 L19,12 C19.55,12 20,11.55 20,11 L20,2 C20,1.45 19.55,1 19,1 L17,1 C16.45,1 16,1.45 16,2 L16,11 C16,11.55 16.45,12 17,12 Z" />
-    <path d="M9.12,14.47 L7.72,16.29 C7.26,16.9 7.48,17.7 8.12,18.05 L15.5,22.4 C16.26,22.84 17.21,22.5 17.55,21.71 L23,9.88" />
-  </SvgIcon>
-);
-
-// Animated greeting text
-const AnimatedGreeting = ({ name }) => {
+const DashboardGreeting = ({ name }) => {
   const theme = useTheme();
-  const [greeting, setGreeting] = useState('');
-  
+  const [greeting, setGreeting] = useState("");
+
   useEffect(() => {
     const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Good morning');
-    else if (hour < 18) setGreeting('Good afternoon');
-    else setGreeting('Good evening');
+    if (hour < 12) setGreeting("Good morning");
+    else if (hour < 18) setGreeting("Good afternoon");
+    else setGreeting("Good evening");
   }, []);
-  
+
   return (
     <Box sx={{ mb: 4 }}>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.5 }}
       >
-        <Typography 
-          variant="h4" 
-          component="h1" 
-          fontWeight={700} 
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            background: `linear-gradient(135deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 100%)`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}
+        <Typography
+          variant="h4"
+          component="h1"
+          fontWeight={700}
+          sx={{ display: "flex", alignItems: "center" }}
         >
-          {greeting}, {name}
+          {greeting}, {name || "User"}!
           <motion.div
-            animate={{ 
-              rotate: [0, 20, 0],
-              y: [0, -5, 0]
-            }}
-            transition={{
-              duration: 1.5,
-              repeat: 2,
-              repeatDelay: 4
-            }}
-            style={{ 
-              display: 'inline-flex', 
-              marginLeft: '8px',
-              transformOrigin: 'bottom right'
-            }}
+            animate={{ rotate: [0, 15, -10, 15, 0] }}
+            transition={{ duration: 1.5, delay: 0.5 }}
+            style={{ display: "inline-flex", marginLeft: "10px" }}
           >
             <WavingHand color="primary" />
           </motion.div>
         </Typography>
       </motion.div>
-      
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.6 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
       >
-        <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-          Ready to capture your next meeting?
+        <Typography
+          variant="h6"
+          color="text.secondary"
+          sx={{ mt: 1, fontWeight: 400 }}
+        >
+          Here's an overview of your recorded meetings.
         </Typography>
       </motion.div>
     </Box>
   );
 };
 
-// Animated statistics cards
-const StatCard = ({ icon, value, label, delay = 0, gradient }) => {
+const StatCard = ({ icon, title, value, delay = 0, color }) => {
   const theme = useTheme();
-  
+  const ref = useRef(null);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.5 }}
-      whileHover={{ y: -5, transition: { duration: 0.2 } }}
-    >
-      <Card 
-        elevation={0}
-        sx={{ 
-          p: 2, 
-          height: '100%',
-          borderRadius: 4,
-          background: `linear-gradient(135deg, ${gradient[0]} 0%, ${gradient[1]} 100%)`,
-          color: 'white',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
+    <Grid item xs={6} sm={6} md={3}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: delay }}
+        whileHover={{ y: -5, transition: { duration: 0.2 } }}
+        style={{ height: "100%" }}
       >
-        <Box 
-          sx={{ 
-            position: 'absolute',
-            top: -20,
-            right: -20,
-            width: 120,
-            height: 120,
-            borderRadius: '50%',
-            background: 'rgba(255, 255, 255, 0.1)',
+        <Paper
+          elevation={0}
+          sx={{
+            p: 3,
+            height: "100%",
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: alpha(color || theme.palette.primary.main, 0.2),
+            background: `linear-gradient(145deg, ${alpha(
+              color || theme.palette.primary.main,
+              0.05
+            )}, ${alpha(color || theme.palette.primary.main, 0.1)})`,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            overflow: "hidden",
+            position: "relative",
           }}
-        />
-        
-        <Box sx={{ position: 'relative', zIndex: 1 }}>
-          <Box sx={{ mb: 1 }}>
+        >
+          <Box
+            sx={{
+              position: "absolute",
+              right: -10,
+              top: -10,
+              opacity: 0.1,
+              transform: "rotate(10deg)",
+              fontSize: "5rem",
+            }}
+          >
             {icon}
           </Box>
-          
-          <Typography variant="h4" fontWeight={700} sx={{ mb: 0.5 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+            <Avatar
+              sx={{
+                bgcolor: alpha(color || theme.palette.primary.main, 0.15),
+                color: color || theme.palette.primary.main,
+                mr: 1.5,
+              }}
+            >
+              {icon}
+            </Avatar>
+            <Typography
+              variant="subtitle2"
+              color="text.secondary"
+              fontWeight={500}
+            >
+              {title}
+            </Typography>
+          </Box>
+          <Typography variant="h4" fontWeight={700} color="text.primary">
             {value}
           </Typography>
-          
-          <Typography variant="body2" sx={{ opacity: 0.9 }}>
-            {label}
-          </Typography>
-        </Box>
-      </Card>
-    </motion.div>
+        </Paper>
+      </motion.div>
+    </Grid>
   );
 };
 
-// Animated meeting card
-const MeetingCard = ({ meeting, onDelete }) => {
+const MeetingCard = ({ meeting, onDelete, onEdit }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-  
+
   const handleMenuClick = (event) => {
     event.preventDefault();
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
   };
-  
+
   const handleMenuClose = (event) => {
     if (event) {
       event.preventDefault();
@@ -175,670 +207,1089 @@ const MeetingCard = ({ meeting, onDelete }) => {
     }
     setAnchorEl(null);
   };
-  
+
   const handleDelete = (event) => {
     event.preventDefault();
     event.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this meeting?')) {
+    if (window.confirm("Delete this meeting?")) {
       onDelete(meeting.id);
     }
     setAnchorEl(null);
   };
-  
-  // Format date
-  const formattedDate = meeting.createdAt 
-    ? moment(meeting.createdAt.toDate()).format('MMM D, YYYY')
-    : 'Date unavailable';
-    
-  // Format time
-  const formattedTime = meeting.createdAt 
-    ? moment(meeting.createdAt.toDate()).format('h:mm A')
-    : '';
-    
-  // Estimate meeting duration in minutes (using size as a proxy)
-  const durationMinutes = Math.max(1, Math.floor(meeting.duration / 100000));
+
+  const formattedDate = meeting.createdAt?.toDate()
+    ? moment(meeting.createdAt.toDate()).format("ddd, MMM D")
+    : "--";
+  const formattedTime = meeting.createdAt?.toDate()
+    ? moment(meeting.createdAt.toDate()).format("h:mm A")
+    : "--";
+  const relativeTime = meeting.createdAt?.toDate()
+    ? moment(meeting.createdAt.toDate()).fromNow()
+    : "";
+
+  const getStatusChip = () => {
+    switch (meeting.status) {
+      case "completed":
+        return (
+          <Chip
+            label="Processed"
+            size="small"
+            color="success"
+            variant="outlined"
+            icon={<TaskAlt fontSize="small" />}
+          />
+        );
+      case "completed_partial":
+        return (
+          <Chip
+            label="Partial"
+            size="small"
+            color="warning"
+            variant="outlined"
+            icon={<EditNote fontSize="small" />}
+          />
+        );
+      case "failed":
+        return (
+          <Chip label="Failed" size="small" color="error" variant="outlined" />
+        );
+      default:
+        return <Chip label={meeting.status || "Draft"} size="small" />;
+    }
+  };
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ 
-        y: -5, 
-        transition: { duration: 0.2 } 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      whileHover={{
+        y: -4,
+        transition: { duration: 0.2 },
       }}
-      style={{ height: '100%' }}
+      style={{ height: "100%" }}
     >
       <Card
         component={RouterLink}
         to={`/meeting/${meeting.id}`}
         sx={{
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          textDecoration: 'none',
-          borderRadius: 4,
-          overflow: 'visible',
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          textDecoration: "none",
+          borderRadius: 3,
+          overflow: "hidden",
           background: theme.palette.background.paper,
-          position: 'relative',
-          transition: 'all 0.3s ease',
-          border: '1px solid',
+          position: "relative",
+          transition: "all 0.3s ease",
+          border: "1px solid",
           borderColor: theme.palette.divider,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-          '&:hover': {
-            borderColor: theme.palette.primary.main,
-            boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
+          boxShadow: "0 4px 15px rgba(0, 0, 0, 0.05)",
+          "&:hover": {
+            borderColor: theme.palette.primary.light,
+            boxShadow: "0 8px 25px rgba(0, 0, 0, 0.08)",
           },
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 5,
-            background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-            borderTopLeftRadius: 4,
-            borderTopRightRadius: 4,
-          }
         }}
       >
-        <CardContent sx={{ p: 3, flexGrow: 1, position: 'relative' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <Box>
-              <Typography variant="h6" component="h2" fontWeight={600} gutterBottom color="text.primary">
-                {meeting.title}
+        <CardHeader
+          avatar={
+            <Avatar
+              sx={{
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                color: theme.palette.primary.main,
+              }}
+            >
+              {meeting.title?.[0]?.toUpperCase() || "M"}
+            </Avatar>
+          }
+          action={
+            <IconButton aria-label="settings" onClick={handleMenuClick}>
+              <MoreVertIcon />
+            </IconButton>
+          }
+          title={
+            <Tooltip title={meeting.title || "Untitled Meeting"}>
+              <Typography
+                variant="h6"
+                fontWeight={600}
+                noWrap
+                color="text.primary"
+                sx={{ fontSize: "1rem" }}
+              >
+                {meeting.title || "Untitled Meeting"}
               </Typography>
-              
-              <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                <Chip 
-                  icon={<CalendarToday fontSize="small" />}
-                  label={formattedDate}
-                  size="small"
-                  sx={{ bgcolor: 'background.default' }}
-                />
-                
-                <Chip 
-                  icon={<AccessTime fontSize="small" />}
-                  label={`${durationMinutes} min`}
-                  size="small"
-                  sx={{ bgcolor: 'background.default' }}
-                />
+            </Tooltip>
+          }
+          subheader={
+            <Typography variant="caption" color="text.secondary">
+              {formattedDate} • {relativeTime}
+            </Typography>
+          }
+          sx={{ pb: 0 }}
+        />
+
+        <CardContent sx={{ pt: 1, flexGrow: 1, pb: 1 }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              mb: 2,
+              height: 40,
+              overflow: "hidden",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+            }}
+          >
+            {meeting?.minutesData?.transcription
+              ? "Transcript available..."
+              : `Created ${relativeTime}`}
+          </Typography>
+        </CardContent>
+
+        <Divider />
+
+        <Box
+          sx={{
+            p: 2,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            bgcolor: alpha(theme.palette.secondary.main, 0.2),
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Tooltip title={`Created by ${meeting.creatorName || "Unknown"}`}>
+              <Avatar
+                src={meeting.creatorPhotoURL}
+                sx={{ width: 28, height: 28, fontSize: "0.8rem" }}
+              >
+                {meeting.creatorName?.[0] || "?"}
+              </Avatar>
+            </Tooltip>
+            <Typography variant="caption" color="text.black">
+              {formattedTime}
+            </Typography>
+          </Box>
+          {getStatusChip()}
+        </Box>
+
+        <Menu
+          id={`meeting-menu-${meeting.id}`}
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleMenuClose}
+          onClick={(e) => e.stopPropagation()}
+          PaperProps={{
+            elevation: 3,
+            sx: {
+              borderRadius: 2,
+              minWidth: 180,
+              overflow: "hidden",
+              boxShadow: "0 8px 20px rgba(0, 0, 0, 0.1)",
+            },
+          }}
+        >
+          <MenuItem
+            onClick={(e) => {
+              handleMenuClose(e);
+            }}
+          >
+            <ListItemIcon>
+              <ShareIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Share" />
+          </MenuItem>
+          <MenuItem
+            onClick={(e) => {
+              handleMenuClose(e);
+            }}
+          >
+            <ListItemIcon>
+              <DownloadIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Download" />
+          </MenuItem>
+          <Divider />
+          <MenuItem
+            onClick={handleDelete}
+            sx={{ color: theme.palette.error.main }}
+          >
+            <ListItemIcon>
+              <DeleteIcon fontSize="small" color="error" />
+            </ListItemIcon>
+            <ListItemText primary="Delete" />
+          </MenuItem>
+        </Menu>
+      </Card>
+    </motion.div >
+  );
+};
+
+const MeetingListItem = ({ meeting, onDelete }) => {
+  const theme = useTheme();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
+  const handleMenuClick = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = (event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    setAnchorEl(null);
+  };
+
+  const handleDelete = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (window.confirm("Delete this meeting?")) {
+      onDelete(meeting.id);
+    }
+    setAnchorEl(null);
+  };
+
+  const formattedDate = meeting.createdAt?.toDate()
+    ? moment(meeting.createdAt.toDate()).format("ddd, MMM D")
+    : "--";
+  const formattedTime = meeting.createdAt?.toDate()
+    ? moment(meeting.createdAt.toDate()).format("h:mm A")
+    : "--";
+  const relativeTime = meeting.createdAt?.toDate()
+    ? moment(meeting.createdAt.toDate()).fromNow()
+    : "";
+
+  const getStatusChip = () => {
+    switch (meeting.status) {
+      case "completed":
+        return (
+          <Chip
+            label="Processed"
+            size="small"
+            color="success"
+            variant="outlined"
+            icon={<TaskAlt fontSize="small" />}
+          />
+        );
+      case "completed_partial":
+        return (
+          <Chip
+            label="Partial"
+            size="small"
+            color="warning"
+            variant="outlined"
+            icon={<EditNote fontSize="small" />}
+          />
+        );
+      case "failed":
+        return (
+          <Chip label="Failed" size="small" color="error" variant="outlined" />
+        );
+      default:
+        return <Chip label={meeting.status || "Draft"} size="small" />;
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.4 }}
+      whileHover={{
+        y: -2,
+        transition: { duration: 0.2 },
+      }}
+    >
+      <Card
+        component={RouterLink}
+        to={`/meeting/${meeting.id}`}
+        sx={{
+          display: "flex",
+          textDecoration: "none",
+          borderRadius: 3,
+          overflow: "hidden",
+          background: theme.palette.background.paper,
+          transition: "all 0.3s ease",
+          border: "1px solid",
+          borderColor: theme.palette.divider,
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
+          mb: 2,
+          "&:hover": {
+            borderColor: theme.palette.primary.light,
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+          },
+        }}
+      >
+        <Box sx={{ display: "flex", width: "100%", alignItems: "center" }}>
+          <Box sx={{ p: 2, display: "flex", alignItems: "center" }}>
+            <Avatar
+              sx={{
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                color: theme.palette.primary.main,
+                height: 40,
+                width: 40,
+              }}
+            >
+              {meeting.title?.[0]?.toUpperCase() || "M"}
+            </Avatar>
+          </Box>
+
+          <Box sx={{ flexGrow: 1, py: 2, pr: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+              }}
+            >
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={600}
+                  color="text.primary"
+                >
+                  {meeting.title || "Untitled Meeting"}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {formattedDate} • {formattedTime} • {relativeTime}
+                </Typography>
+              </Box>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 1, ml: 2 }}
+              >
+                {getStatusChip()}
+                <IconButton size="small" onClick={handleMenuClick}>
+                  <MoreVertIcon fontSize="small" />
+                </IconButton>
               </Box>
             </Box>
-            
-            <Box>
-              <IconButton
-                size="small"
-                aria-label="more options"
-                aria-controls={`meeting-menu-${meeting.id}`}
-                aria-haspopup="true"
-                onClick={handleMenuClick}
-              >
-                <MoreVertIcon fontSize="small" />
-              </IconButton>
-              
-              <Menu
-                id={`meeting-menu-${meeting.id}`}
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleMenuClose}
-                onClick={(e) => e.stopPropagation()}
-                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-                elevation={3}
-                PaperProps={{
-                  sx: {
-                    borderRadius: 2,
-                    border: '1px solid',
-                    borderColor: theme.palette.divider,
-                  }
-                }}
-              >
-                <MenuItem onClick={handleMenuClose}>
-                  <ListItemIcon>
-                    <ShareIcon fontSize="small" />
-                  </ListItemIcon>
-                  Share
-                </MenuItem>
-                <MenuItem onClick={handleMenuClose}>
-                  <ListItemIcon>
-                    <DownloadIcon fontSize="small" />
-                  </ListItemIcon>
-                  Download
-                </MenuItem>
-                <Divider />
-                <MenuItem onClick={handleDelete} sx={{ color: theme.palette.error.main }}>
-                  <ListItemIcon>
-                    <DeleteIcon fontSize="small" color="error" />
-                  </ListItemIcon>
-                  Delete
-                </MenuItem>
-              </Menu>
-            </Box>
           </Box>
-          
-          {/* Decorative wavey line */}
-          <Box sx={{ 
-            display: 'flex', 
-            mb: 2, 
-            height: 16, 
-            overflow: 'hidden',
-            opacity: 0.5
-          }}>
-            {[...Array(8)].map((_, i) => (
-              <motion.div
-                key={i}
-                animate={{
-                  height: [
-                    `${4 + Math.random() * 8}px`,
-                    `${8 + Math.random() * 12}px`,
-                    `${4 + Math.random() * 8}px`
-                  ]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  repeatType: 'reverse',
-                  ease: 'easeInOut',
-                  delay: i * 0.1
-                }}
-                style={{
-                  width: '5px',
-                  backgroundColor: theme.palette.primary.main,
-                  margin: '0 2px',
-                  borderRadius: '2px',
-                }}
-              />
-            ))}
-          </Box>
-          
-          <Box sx={{ display: 'flex', alignItems: 'center', mt: 'auto' }}>
-            <Avatar 
-              src={meeting.creatorPhotoURL}
-              alt={meeting.creatorName || "User"}
-              sx={{ width: 24, height: 24, mr: 1 }}
-            >
-              {meeting.creatorName ? meeting.creatorName[0] : "U"}
-            </Avatar>
-            
-            <Typography variant="body2" color="text.secondary" noWrap>
-              {meeting.creatorName || "User"}
-            </Typography>
-            
-            <Box sx={{ ml: 'auto' }}>
-              <Chip
-                size="small"
-                label={meeting.status === 'completed' ? 'Completed' : 'Draft'}
-                color={meeting.status === 'completed' ? 'success' : 'default'}
-                sx={{ 
-                  fontWeight: 500,
-                  height: 24
-                }}
-              />
-            </Box>
-          </Box>
-        </CardContent>
+        </Box>
+
+        <Menu
+          id={`meeting-list-menu-${meeting.id}`}
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleMenuClose}
+          onClick={(e) => e.stopPropagation()}
+          PaperProps={{
+            elevation: 3,
+            sx: {
+              borderRadius: 2,
+              minWidth: 180,
+              overflow: "hidden",
+              boxShadow: "0 8px 20px rgba(0, 0, 0, 0.1)",
+            },
+          }}
+        >
+          <MenuItem
+            onClick={(e) => {
+              handleMenuClose(e);
+            }}
+          >
+            <ListItemIcon>
+              <ShareIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Share" />
+          </MenuItem>
+          <MenuItem
+            onClick={(e) => {
+              handleMenuClose(e);
+            }}
+          >
+            <ListItemIcon>
+              <DownloadIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Download" />
+          </MenuItem>
+          <Divider />
+          <MenuItem
+            onClick={handleDelete}
+            sx={{ color: theme.palette.error.main }}
+          >
+            <ListItemIcon>
+              <DeleteIcon fontSize="small" color="error" />
+            </ListItemIcon>
+            <ListItemText primary="Delete" />
+          </MenuItem>
+        </Menu>
       </Card>
     </motion.div>
   );
 };
 
-// Empty state component
-const EmptyState = ({ searchTerm }) => {
+const EmptyState = ({ onCreateNew }) => {
   const theme = useTheme();
-  
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.5, duration: 0.5 }}
     >
-      <Box
+      <Paper
+        elevation={0}
         sx={{
-          textAlign: 'center',
-          py: 8,
-          px: 4,
-          background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
+          textAlign: "center",
+          py: { xs: 8, md: 12 },
+          px: 3,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: 400,
           borderRadius: 4,
-          border: '2px dashed',
-          borderColor: theme.palette.divider,
-          maxWidth: 600,
-          mx: 'auto'
+          border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+          bgcolor: alpha(theme.palette.background.paper, 0.7),
+          backdropFilter: "blur(10px)",
         }}
       >
-        <motion.div
-          animate={{ 
-            y: [0, -10, 0],
-            opacity: [0.7, 1, 0.7]
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            repeatType: 'loop'
+        <Box
+          sx={{
+            width: 100,
+            height: 100,
+            borderRadius: "50%",
+            bgcolor: alpha(theme.palette.primary.main, 0.1),
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mb: 3,
           }}
         >
-          <Mic 
-            sx={{ 
-              fontSize: 70, 
-              color: theme.palette.primary.main,
-              mb: 2,
-              opacity: 0.8
-            }} 
-          />
-        </motion.div>
-        
+          <Mic sx={{ fontSize: 50, color: theme.palette.primary.main }} />
+        </Box>
+
         <Typography variant="h5" fontWeight={600} gutterBottom>
-          {searchTerm 
-            ? `No meetings match "${searchTerm}"`
-            : "No meetings recorded yet"}
+          Your meeting space is empty
         </Typography>
-        
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 450, mx: 'auto' }}>
-          {searchTerm 
-            ? "Try adjusting your search term or clear the search to see all meetings."
-            : "Record your first meeting to create AI-powered minutes that capture every important detail."}
+
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={{ mb: 4, maxWidth: 400 }}
+        >
+          Start by recording your first meeting to generate AI minutes.
         </Typography>
-        
-        {!searchTerm && (
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.98 }}
+
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button
+            variant="contained"
+            onClick={onCreateNew}
+            size="large"
+            startIcon={<AddIcon />}
+            sx={{ borderRadius: "50px", px: 4, py: 1.5 }}
           >
-            <Button
-              variant="contained"
-              color="primary"
-              component={RouterLink}
-              to="/new-meeting"
-              startIcon={<MicNone />}
-              size="large"
-              sx={{ px: 4, py: 1.5, borderRadius: 3 }}
-            >
-              Record Your First Meeting
-            </Button>
-          </motion.div>
-        )}
-      </Box>
+            Record First Meeting
+          </Button>
+        </motion.div>
+      </Paper>
     </motion.div>
   );
 };
 
-// Main Dashboard Component
+
 const Dashboard = () => {
   const { currentUser } = useAuth();
-  const { meetings, loadUserMeetings, loading, removeMeeting } = useMeeting();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const theme = useTheme();
-  
-  // Stats
-  const totalMeetings = meetings.length;
-  const totalMinutes = Math.floor(meetings.reduce((acc, meeting) => acc + (meeting.duration || 0), 0) / 100000);
-  const completedMeetings = meetings.filter(m => m.status === 'completed').length;
+  const { meetings, loadUserMeetings, loading, error, removeMeeting } =
+    useMeeting();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("lastModified");
+  const [sortDirection, setSortDirection] = useState("desc");
+  const [anchorElSort, setAnchorElSort] = useState(null);
+  const [viewMode, setViewMode] = useState("list");
+  const [notification, setNotification] = useState({
+    open: false,
+    message: "",
+    type: "success",
+  });
 
-  // Load user meetings on component mount
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const navigate = useNavigate();
+
+  const stableLoadUserMeetings = useCallback(loadUserMeetings, [
+    loadUserMeetings,
+  ]);
+  const stableRemoveMeeting = useCallback(
+    (id) => {
+      removeMeeting(id);
+      setNotification({
+        open: true,
+        message: "Meeting deleted successfully",
+        type: "success",
+      });
+    },
+    [removeMeeting]
+  );
+
   useEffect(() => {
-    loadUserMeetings();
+    if (currentUser) {
+      stableLoadUserMeetings();
+    }
   }, [currentUser]);
 
-  // Handle search input change
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
+  const processedMeetings = useMemo(() => {
+    if (!meetings) return [];
+
+    let results = [...meetings];
+
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      results = results.filter((meeting) =>
+        meeting?.title?.toLowerCase().includes(search)
+      );
+    }
+
+    results.sort((a, b) => {
+      let valueA, valueB;
+
+      switch (sortBy) {
+        case "title":
+          valueA = (a.title || "").toLowerCase();
+          valueB = (b.title || "").toLowerCase();
+          return sortDirection === "asc"
+            ? valueA.localeCompare(valueB)
+            : valueB.localeCompare(valueA);
+        case "createdAt":
+          valueA = a.createdAt?.toDate?.() || 0;
+          valueB = b.createdAt?.toDate?.() || 0;
+          break;
+        default:
+          valueA = a.lastModified?.toDate?.() || a.createdAt?.toDate?.() || 0;
+          valueB = b.lastModified?.toDate?.() || b.createdAt?.toDate?.() || 0;
+      }
+
+      return sortDirection === "asc" ? valueA - valueB : valueB - valueA;
+    });
+
+    return results;
+  }, [meetings, searchTerm, sortBy, sortDirection]);
+
+  const totalMeetings = meetings?.length || 0;
+  const completedMeetings =
+    meetings?.filter((m) => m.status === "completed")?.length || 0;
+  const now = new Date();
+  const todayMeetings =
+    meetings?.filter((m) => {
+      const date = m.createdAt?.toDate?.();
+      return date && moment(date).isSame(now, "day");
+    })?.length || 0;
+
+  const handleSortMenuOpen = (event) => setAnchorElSort(event.currentTarget);
+  const handleSortMenuClose = () => setAnchorElSort(null);
+  const handleSort = (field) => {
+    setSortBy((prev) => {
+      if (prev === field) {
+        setSortDirection((dir) => (dir === "asc" ? "desc" : "asc"));
+      } else {
+        setSortDirection("desc");
+      }
+      return field;
+    });
+    handleSortMenuClose();
   };
 
-  // Handle meeting deletion
-  const handleDeleteMeeting = async (id) => {
-    await removeMeeting(id);
+  const handleCreateNew = () => navigate("/new-meeting");
+
+  const handleNotificationClose = (event, reason) => {
+    if (reason === "clickaway") return;
+    setNotification({ ...notification, open: false });
   };
 
-  // Filter meetings based on search term
-  const filteredMeetings = meetings.filter(meeting => 
-    meeting.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  
+  const renderSkeletons = (count) => {
+    return Array(count)
+      .fill(0)
+      .map((_, index) => (
+        <Grid item xs={12} sm={6} md={4} key={`skeleton-${index}`}>
+          <Skeleton
+            variant="rounded"
+            height={viewMode === "grid" ? 220 : 90}
+            sx={{
+              borderRadius: 3,
+              opacity: 1 - index * 0.1,
+            }}
+          />
+        </Grid>
+      ));
+  };
+
   return (
     <Box
       sx={{
-        minHeight: '100vh',
-        background: theme.palette.background.default,
-        position: 'relative',
-        pb: 8
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        bgcolor: alpha(theme.palette.background.default, 0.97),
+        backgroundImage: `radial-gradient(${alpha(
+          theme.palette.primary.main,
+          0.05
+        )} 1px, transparent 0)`,
+        backgroundSize: "20px 20px",
+        backgroundPosition: "0 0",
       }}
     >
-      {/* Background decoration */}
-      <Box 
-        sx={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          width: { xs: '100%', md: '50%' },
-          height: '50%',
-          background: `radial-gradient(circle at top right, ${theme.palette.primary.main}08 0%, transparent 70%)`,
-          opacity: 0.8,
-          zIndex: 0,
-          pointerEvents: 'none',
-        }}
-      />
-      
-      <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, pt: 3 }}>
-        <Grid container spacing={4}>
-          {/* Left column - Main content */}
-          <Grid item xs={12} md={8}>
-            {/* Welcome message */}
-            <AnimatedGreeting name={currentUser?.displayName?.split(' ')[0] || 'User'} />
-            
-            {/* Quick stats */}
-            <Grid container spacing={2} sx={{ mb: 4 }}>
-              <Grid item xs={12} sm={4}>
-                <StatCard 
-                  icon={<Mic sx={{ color: 'white', fontSize: 28 }} />}
-                  value={totalMeetings}
-                  label="Total Meetings"
-                  delay={0.1}
-                  gradient={['#4158D0', '#C850C0']}
-                />
-              </Grid>
-              
-              <Grid item xs={12} sm={4}>
-                <StatCard 
-                  icon={<AccessTime sx={{ color: 'white', fontSize: 28 }} />}
-                  value={`${totalMinutes}`}
-                  label="Minutes Recorded"
-                  delay={0.2}
-                  gradient={['#0061ff', '#60efff']}
-                />
-              </Grid>
-              
-              <Grid item xs={12} sm={4}>
-                <StatCard 
-                  icon={<TaskAlt sx={{ color: 'white', fontSize: 28 }} />}
-                  value={completedMeetings}
-                  label="Completed Minutes"
-                  delay={0.3}
-                  gradient={['#43a047', '#81c784']}
-                />
-              </Grid>
-            </Grid>
-            
-            {/* Search and Actions */}
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'space-between',
-                mb: 4,
-                flexWrap: { xs: 'wrap', sm: 'nowrap' },
-                gap: 2
-              }}
-            >
-              <motion.div
-                animate={{ 
-                  scale: isSearchFocused ? 1.02 : 1,
+      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 }, flexGrow: 1 }}>
+        <DashboardGreeting name={currentUser?.displayName?.split(" ")[0]} />
+
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <StatCard
+            icon={<Mic />}
+            title="Total Meetings"
+            value={totalMeetings}
+            color={theme.palette.primary.main}
+            delay={0.1}
+          />
+          <StatCard
+            icon={<TaskAlt />}
+            title="Processed"
+            value={completedMeetings}
+            color={theme.palette.success.main}
+            delay={0.2}
+          />
+          <StatCard
+            icon={<CalendarToday />}
+            title="Today"
+            value={todayMeetings}
+            color={theme.palette.info.main}
+            delay={0.3}
+          />
+          <StatCard
+            icon={<AccessTime />}
+            title="Average Duration"
+            value="1hr"
+            color={theme.palette.secondary.main}
+            delay={0.4}
+          />
+        </Grid>
+
+        {/* Toolbar Section */}
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 2, md: 3 },
+            borderRadius: 4,
+            mb: 3,
+            bgcolor: alpha(theme.palette.background.paper, 0.8),
+            backdropFilter: "blur(10px)",
+            border: `1px solid ${theme.palette.divider}`,
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 2,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Typography
+                variant="h6"
+                component="h2"
+                sx={{
+                  fontWeight: 600,
+                  color: theme.palette.text.primary,
+                  mr: 1,
+                  display: { xs: "none", sm: "block" },
                 }}
-                transition={{ duration: 0.2 }}
-                style={{ flexGrow: 1 }}
               >
-                <TextField
-                  fullWidth
-                  placeholder="Search meetings..."
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                  onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() => setIsSearchFocused(false)}
-                  variant="outlined"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon color="action" />
-                      </InputAdornment>
-                    ),
-                    sx: {
-                      borderRadius: 3,
-                      bgcolor: 'background.paper',
-                      transition: 'all 0.3s ease',
-                      boxShadow: isSearchFocused ? '0 4px 20px rgba(0,0,0,0.1)' : 'none',
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: isSearchFocused ? theme.palette.primary.main : theme.palette.divider,
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.primary.main,
-                      }
-                    }
+                Your Meetings
+              </Typography>
+              {!loading && (
+                <Chip
+                  label={processedMeetings.length}
+                  size="small"
+                  sx={{
+                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    color: theme.palette.primary.main,
+                    fontWeight: 600,
                   }}
                 />
-              </motion.div>
-              
+              )}
+            </Box>
+
+            <Box
+              sx={{
+                display: "flex",
+                gap: { xs: 1, sm: 2 },
+                flexWrap: "wrap",
+                width: { xs: "100%", md: "auto" },
+                order: { xs: 3, md: 0 },
+              }}
+            >
+              <TextField
+                placeholder="Search meetings..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                size="small"
+                fullWidth={isMobile}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" color="action" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: searchTerm ? (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="clear search"
+                        onClick={() => setSearchTerm("")}
+                        edge="end"
+                        size="small"
+                      >
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : null,
+                  sx: {
+                    borderRadius: "50px",
+                    bgcolor: theme.palette.background.paper,
+                    pr: searchTerm ? 0.5 : 2,
+                  },
+                }}
+                sx={{
+                  flexGrow: 1,
+                  minWidth: { sm: 200, md: 250 },
+                  maxWidth: { sm: 250, md: 300 },
+                }}
+              />
+
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <Button
+                  size="small"
+                  startIcon={<SortIcon />}
+                  variant="outlined"
+                  onClick={handleSortMenuOpen}
+                  sx={{
+                    borderRadius: "50px",
+                    textTransform: "none",
+                    color: "text.secondary",
+                    borderColor: "divider",
+                  }}
+                >
+                  Sort
+                </Button>
+
+                <ButtonGroup
+                  variant="outlined"
+                  size="small"
+                  sx={{
+                    borderRadius: "50px",
+                    overflow: "hidden",
+                    ".MuiButtonGroup-grouped": {
+                      border: `1px solid ${theme.palette.divider}`,
+                    },
+                  }}
+                >
+                  <Tooltip title="Grid View">
+                    <Button
+                      onClick={() => setViewMode("list")}
+                      sx={{
+                        bgcolor:
+                          viewMode === "list"
+                            ? alpha(theme.palette.primary.main, 0.1)
+                            : "inherit",
+                        color:
+                          viewMode === "list"
+                            ? theme.palette.primary.main
+                            : "text.secondary",
+                      }}
+                    >
+                      <ListViewIcon fontSize="small" />
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="List View">
+
+                    <Button
+                      onClick={() => setViewMode("grid")}
+                      sx={{
+                        bgcolor:
+                          viewMode === "grid"
+                            ? alpha(theme.palette.primary.main, 0.1)
+                            : "inherit",
+                        color:
+                          viewMode === "grid"
+                            ? theme.palette.primary.main
+                            : "text.secondary",
+                      }}
+                    >
+                      <GridViewIcon fontSize="small" />
+                    </Button>
+                  </Tooltip>
+                </ButtonGroup>
+
+
+              </Box>
+
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.97 }}
+                whileTap={{ scale: 0.95 }}
+                style={{ display: "flex" }}
               >
                 <Button
                   variant="contained"
-                  color="primary"
-                  component={RouterLink}
-                  to="/new-meeting"
                   startIcon={<AddIcon />}
-                  sx={{ 
-                    px: { xs: 2, sm: 3 },
-                    py: 1.5,
-                    borderRadius: 3,
-                    whiteSpace: 'nowrap',
-                    boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
-                    minWidth: { xs: '100%', sm: 'auto' }
+                  onClick={handleCreateNew}
+                  size="small"
+                  sx={{
+                    borderRadius: "50px",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    boxShadow: `0 4px 12px ${alpha(
+                      theme.palette.primary.main,
+                      0.2
+                    )}`,
+                    px: 2,
+                    py: 1,
                   }}
                 >
-                  New Meeting
+                  Record New
                 </Button>
               </motion.div>
             </Box>
-            
-            {/* Meetings list */}
-            <Box sx={{ position: 'relative', minHeight: 200 }}>
-              {loading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                  >
-                    <CircularProgress size={60} />
-                  </motion.div>
-                </Box>
-              ) : filteredMeetings.length > 0 ? (
-                <Grid container spacing={3}>
-                  {filteredMeetings.map((meeting, index) => (
-                    <Grid item xs={12} sm={6} key={meeting.id}>
-                      <MeetingCard 
-                        meeting={meeting} 
-                        onDelete={handleDeleteMeeting} 
-                      />
-                    </Grid>
-                  ))}
-                </Grid>
-              ) : (
-                <EmptyState searchTerm={searchTerm} />
-              )}
-            </Box>
-          </Grid>
-          
-          {/* Right column - Activity & Quick actions */}
-          <Grid item xs={12} md={4}>
-            <Box sx={{ position: 'sticky', top: 80 }}>
-              {/* New Recording Button */}
+          </Box>
+        </Paper>
+
+        <Menu
+          id="sort-menu"
+          anchorEl={anchorElSort}
+          open={Boolean(anchorElSort)}
+          onClose={handleSortMenuClose}
+          PaperProps={{
+            elevation: 3,
+            sx: {
+              borderRadius: 2,
+              minWidth: 180,
+              boxShadow: "0 8px 20px rgba(0, 0, 0, 0.1)",
+            },
+          }}
+        >
+          <MenuItem
+            onClick={() => handleSort("lastModified")}
+            sx={{
+              fontWeight: sortBy === "lastModified" ? 600 : 400,
+              bgcolor:
+                sortBy === "lastModified"
+                  ? alpha(theme.palette.primary.main, 0.08)
+                  : "inherit",
+            }}
+          >
+            <ListItemIcon>
+              {sortBy === "lastModified" &&
+                (sortDirection === "desc" ? (
+                  <KeyboardArrowDownIcon color="primary" fontSize="small" />
+                ) : (
+                  <KeyboardArrowUpIcon color="primary" fontSize="small" />
+                ))}
+            </ListItemIcon>
+            <ListItemText primary="Last Modified" />
+          </MenuItem>
+          <MenuItem
+            onClick={() => handleSort("createdAt")}
+            sx={{
+              fontWeight: sortBy === "createdAt" ? 600 : 400,
+              bgcolor:
+                sortBy === "createdAt"
+                  ? alpha(theme.palette.primary.main, 0.08)
+                  : "inherit",
+            }}
+          >
+            <ListItemIcon>
+              {sortBy === "createdAt" &&
+                (sortDirection === "desc" ? (
+                  <KeyboardArrowDownIcon color="primary" fontSize="small" />
+                ) : (
+                  <KeyboardArrowUpIcon color="primary" fontSize="small" />
+                ))}
+            </ListItemIcon>
+            <ListItemText primary="Date Created" />
+          </MenuItem>
+          <MenuItem
+            onClick={() => handleSort("title")}
+            sx={{
+              fontWeight: sortBy === "title" ? 600 : 400,
+              bgcolor:
+                sortBy === "title"
+                  ? alpha(theme.palette.primary.main, 0.08)
+                  : "inherit",
+            }}
+          >
+            <ListItemIcon>
+              {sortBy === "title" &&
+                (sortDirection === "desc" ? (
+                  <KeyboardArrowDownIcon color="primary" fontSize="small" />
+                ) : (
+                  <KeyboardArrowUpIcon color="primary" fontSize="small" />
+                ))}
+            </ListItemIcon>
+            <ListItemText primary="Title" />
+          </MenuItem>
+        </Menu>
+
+        <Box sx={{ minHeight: 400 }}>
+          {loading ? (
+            <Grid container spacing={3}>
+              {renderSkeletons(6)}
+            </Grid>
+          ) : error ? (
+            <Alert
+              severity="error"
+              sx={{
+                mt: 2,
+                borderRadius: 3,
+                boxShadow: "0 4px 15px rgba(0, 0, 0, 0.05)",
+              }}
+            >
+              Error loading meetings: {error}
+            </Alert>
+          ) : processedMeetings.length === 0 ? (
+            searchTerm ? (
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-                whileHover={{ 
-                  scale: 1.02,
-                  transition: { duration: 0.2 }
-                }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
               >
-                <Card
+                <Paper
+                  elevation={0}
                   sx={{
+                    textAlign: "center",
+                    py: 8,
+                    px: 3,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: 300,
                     borderRadius: 4,
-                    p: 3,
-                    mb: 4,
-                    background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
-                    color: 'white',
-                    overflow: 'hidden',
-                    position: 'relative',
+                    border: `1px solid ${alpha(
+                      theme.palette.primary.main,
+                      0.1
+                    )}`,
+                    bgcolor: alpha(theme.palette.background.paper, 0.7),
+                    backdropFilter: "blur(10px)",
                   }}
                 >
-                  {/* Decorative circles */}
                   <Box
                     sx={{
-                      position: 'absolute',
-                      top: -30,
-                      right: -30,
-                      width: 150,
-                      height: 150,
-                      borderRadius: '50%',
-                      background: 'rgba(255, 255, 255, 0.1)',
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
                     }}
-                  />
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      bottom: -40,
-                      left: -40,
-                      width: 120,
-                      height: 120,
-                      borderRadius: '50%',
-                      background: 'rgba(255, 255, 255, 0.07)',
-                    }}
-                  />
-                  
-                  <Box sx={{ position: 'relative', zIndex: 1 }}>
-                    <Typography variant="h5" fontWeight={600} gutterBottom>
-                      Start Recording
-                    </Typography>
-                    
-                    <Typography variant="body1" sx={{ mb: 3, opacity: 0.9 }}>
-                      One click to capture your meeting and generate AI minutes.
-                    </Typography>
-                    
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Button
-                        variant="contained"
-                        component={RouterLink}
-                        to="/new-meeting"
-                        fullWidth
-                        size="large"
-                        sx={{
-                          py: 1.5,
-                          bgcolor: 'white',
-                          color: theme.palette.primary.dark,
-                          '&:hover': {
-                            bgcolor: 'rgba(255, 255, 255, 0.9)',
-                          }
-                        }}
-                        startIcon={
-                          <Mic />
-                        }
-                      >
-                        Record Now
-                      </Button>
-                    </motion.div>
-                  </Box>
-                </Card>
-              </motion.div>
-              
-              {/* Recent activity */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.5 }}
-              >
-                <Card sx={{ borderRadius: 4, overflow: 'hidden', border: '1px solid', borderColor: theme.palette.divider }}>
-                  <Box sx={{ p: 3, pb: 2 }}>
+                  >
+                    <SearchIcon
+                      sx={{
+                        fontSize: 50,
+                        color: alpha(theme.palette.text.secondary, 0.5),
+                        mb: 2,
+                      }}
+                    />
                     <Typography variant="h6" fontWeight={600} gutterBottom>
-                      Recent Activity
+                      No matching meetings found
                     </Typography>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mb: 3, maxWidth: 400 }}
+                    >
+                      Try different search terms or clear your search to see all
+                      your meetings.
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<CloseIcon />}
+                      onClick={() => setSearchTerm("")}
+                      sx={{ borderRadius: "50px" }}
+                    >
+                      Clear Search
+                    </Button>
                   </Box>
-                  
-                  <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
-                    {meetings.length > 0 ? (
-                      meetings.slice(0, 5).map((meeting, index) => (
-                        <Box
-                          key={meeting.id}
-                          sx={{
-                            p: 2,
-                            borderTop: '1px solid',
-                            borderColor: theme.palette.divider,
-                            '&:hover': {
-                              bgcolor: 'background.default'
-                            }
-                          }}
-                        >
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Box 
-                              sx={{ 
-                                width: 40, 
-                                height: 40, 
-                                borderRadius: '50%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                mr: 2,
-                                background: `rgba(${theme.palette.primary.main}, 0.1)`,
-                                color: theme.palette.primary.main
-                              }}
-                            >
-                              <WaveIcon />
-                            </Box>
-                            
-                            <Box sx={{ flexGrow: 1 }}>
-                              <Typography variant="body2" fontWeight={500} noWrap>
-                                {meeting.title}
-                              </Typography>
-                              
-                              <Typography variant="caption" color="text.secondary">
-                                {meeting.createdAt 
-                                  ? moment(meeting.createdAt.toDate()).fromNow() 
-                                  : 'Recently'}
-                              </Typography>
-                            </Box>
-                            
-                            <Tooltip title="View details">
-                              <IconButton 
-                                component={RouterLink}
-                                to={`/meeting/${meeting.id}`}
-                                size="small"
-                              >
-                                <MoreHoriz fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          </Box>
-                        </Box>
-                      ))
-                    ) : (
-                      <Box sx={{ p: 4, textAlign: 'center' }}>
-                        <Typography color="text.secondary">
-                          No recent activity
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
-                  
-                  {meetings.length > 5 && (
-                    <Box sx={{ p: 2, textAlign: 'center', borderTop: '1px solid', borderColor: theme.palette.divider }}>
-                      <Button 
-                        variant="text" 
-                        color="primary"
-                        endIcon={<MoreHoriz />}
-                        sx={{ fontWeight: 500 }}
-                      >
-                        View All
-                      </Button>
-                    </Box>
-                  )}
-                </Card>
+                </Paper>
               </motion.div>
-            </Box>
-          </Grid>
-        </Grid>
+            ) : (
+              <EmptyState onCreateNew={handleCreateNew} />
+            )
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={viewMode}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {viewMode === "grid" ? (
+                  <Grid container spacing={3}>
+                    {processedMeetings.map((meeting) => (
+                      <Grid item xs={12} sm={6} md={4} key={meeting.id}>
+                        <MeetingCard
+                          meeting={meeting}
+                          onDelete={stableRemoveMeeting}
+                          onEdit={(id) => navigate(`/meeting/${id}`)}
+                        />
+                      </Grid>
+                    ))}
+                  </Grid>
+                ) : (
+                  <Box>
+                    {processedMeetings.map((meeting) => (
+                      <MeetingListItem
+                        key={meeting.id}
+                        meeting={meeting}
+                        onDelete={stableRemoveMeeting}
+                        onEdit={(id) => navigate(`/meeting/${id}`)}
+                      />
+                    ))}
+                  </Box>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          )}
+        </Box>
       </Container>
+
+      <Tooltip title="Record New Meeting">
+        <Fab
+          color="primary"
+          aria-label="record new meeting"
+          onClick={handleCreateNew}
+          sx={{
+            position: "fixed",
+            bottom: 32,
+            right: 32,
+            boxShadow: `0 6px 16px ${alpha(theme.palette.primary.main, 0.3)}`,
+          }}
+        >
+          <Mic />
+        </Fab>
+      </Tooltip>
+
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={4000}
+        onClose={handleNotificationClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleNotificationClose}
+          severity={notification.type}
+          variant="filled"
+          sx={{
+            width: "100%",
+            borderRadius: 3,
+            boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
+          }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

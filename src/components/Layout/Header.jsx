@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { motion, AnimatePresence } from 'framer-motion';
+/* eslint-disable no-unused-vars */
+import React, { useState, useEffect } from "react";
+import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { motion } from "framer-motion";
 import {
   AppBar,
   Box,
@@ -24,57 +25,63 @@ import {
   alpha,
   useTheme,
   useScrollTrigger,
-  useMediaQuery
-} from '@mui/material';
+  useMediaQuery,
+} from "@mui/material";
 import {
   Menu as MenuIcon,
   NotificationsOutlined,
   Settings,
   Logout,
-  Add as AddIcon,
   AccountCircle,
   Dashboard,
   MicNone,
   Person,
   ChevronRight,
-  Brightness4,
-  Brightness7,
-  GitHub,
   HelpOutline,
-  LightMode,
-  DarkMode,
-  NoteAlt
-} from '@mui/icons-material';
-import Logo from '../UI/Logo';
+} from "@mui/icons-material";
+import Logo from "../UI/Logo";
 
-// Notification Badge component
 const NotificationBadge = () => {
   const theme = useTheme();
   const [hasNotifications, setHasNotifications] = useState(true);
   const [notificationCount, setNotificationCount] = useState(3);
   const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
-  
-  // Mock notifications
+
   const notifications = [
-    { id: 1, message: "Your meeting 'Product Review' has been transcribed", time: "10 minutes ago", read: false },
-    { id: 2, message: "You have 15 minutes of recording time left this month", time: "2 hours ago", read: false },
-    { id: 3, message: "Meeting minutes for 'Team Sync' are ready", time: "Yesterday", read: true },
+    {
+      id: 1,
+      message: "Your meeting 'Product Review' has been transcribed",
+      time: "10 minutes ago",
+      read: false,
+    },
+    {
+      id: 2,
+      message: "You have 15 minutes of recording time left this month",
+      time: "2 hours ago",
+      read: false,
+    },
+    {
+      id: 3,
+      message: "Meeting minutes for 'Team Sync' are ready",
+      time: "Yesterday",
+      read: true,
+    },
   ];
-  
+
   const handleNotificationClick = (event) => {
     setNotificationAnchorEl(event.currentTarget);
   };
-  
+
   const handleNotificationClose = () => {
     setNotificationAnchorEl(null);
   };
-  
+
   const handleMarkAllRead = () => {
     setHasNotifications(false);
     setNotificationCount(0);
     handleNotificationClose();
   };
-  
+
   return (
     <>
       <Tooltip title="Notifications">
@@ -82,26 +89,32 @@ const NotificationBadge = () => {
           color="inherit"
           onClick={handleNotificationClick}
           sx={{
-            position: 'relative',
-            '&::after': hasNotifications ? {
-              content: '""',
-              position: 'absolute',
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              backgroundColor: theme.palette.error.main,
-              top: 10,
-              right: 10,
-              boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
-            } : {}
+            position: "relative",
+            "&::after": hasNotifications
+              ? {
+                content: '""',
+                position: "absolute",
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                backgroundColor: theme.palette.error.main,
+                top: 10,
+                right: 10,
+                boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
+              }
+              : {},
           }}
         >
-          <Badge color="error" badgeContent={notificationCount} invisible={!hasNotifications}>
+          <Badge
+            color="error"
+            badgeContent={notificationCount}
+            invisible={!hasNotifications}
+          >
             <NotificationsOutlined />
           </Badge>
         </IconButton>
       </Tooltip>
-      
+
       <Menu
         anchorEl={notificationAnchorEl}
         open={Boolean(notificationAnchorEl)}
@@ -111,70 +124,95 @@ const NotificationBadge = () => {
           sx: {
             mt: 1.5,
             width: 360,
-            maxWidth: '100%',
-            maxHeight: 'calc(100vh - 100px)',
+            maxWidth: "100%",
+            maxHeight: "calc(100vh - 100px)",
             borderRadius: 2,
-            overflow: 'hidden',
-          }
+            overflow: "hidden",
+          },
         }}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        <Box sx={{ px: 2, py: 2, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box
+          sx={{
+            px: 2,
+            py: 2,
+            bgcolor: "background.paper",
+            borderBottom: "1px solid",
+            borderColor: "divider",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
             <Typography variant="subtitle1" fontWeight={600}>
               Notifications
             </Typography>
-            
+
             <Button size="small" onClick={handleMarkAllRead}>
               Mark all as read
             </Button>
           </Box>
         </Box>
-        
-        <List sx={{ p: 0, maxHeight: 320, overflow: 'auto' }}>
+
+        <List sx={{ p: 0, maxHeight: 320, overflow: "auto" }}>
           {notifications.map((notification) => (
-            <ListItem 
+            <ListItem
               key={notification.id}
-              sx={{ 
-                px: 2, 
+              sx={{
+                px: 2,
                 py: 1.5,
-                bgcolor: notification.read ? 'transparent' : alpha(theme.palette.primary.main, 0.05),
-                borderLeft: notification.read ? 'none' : `3px solid ${theme.palette.primary.main}`,
-                '&:hover': {
+                bgcolor: notification.read
+                  ? "transparent"
+                  : alpha(theme.palette.primary.main, 0.05),
+                borderLeft: notification.read
+                  ? "none"
+                  : `3px solid ${theme.palette.primary.main}`,
+                "&:hover": {
                   bgcolor: alpha(theme.palette.primary.main, 0.08),
                 },
               }}
               button={true}
             >
-              <ListItemText 
-                primary={notification.message} 
+              <ListItemText
+                primary={notification.message}
                 secondary={notification.time}
                 primaryTypographyProps={{
-                  variant: 'body2',
+                  variant: "body2",
                   fontWeight: notification.read ? 400 : 600,
-                  color: notification.read ? 'text.secondary' : 'text.primary',
+                  color: notification.read ? "text.secondary" : "text.primary",
                 }}
                 secondaryTypographyProps={{
-                  variant: 'caption',
+                  variant: "caption",
                 }}
               />
               <ChevronRight fontSize="small" color="action" />
             </ListItem>
           ))}
-          
+
           {notifications.length === 0 && (
             <ListItem sx={{ py: 6 }}>
-              <ListItemText 
-                primary="No notifications" 
+              <ListItemText
+                primary="No notifications"
                 secondary="You're all caught up!"
-                sx={{ textAlign: 'center' }}
+                sx={{ textAlign: "center" }}
               />
             </ListItem>
           )}
         </List>
-        
-        <Box sx={{ p: 1.5, borderTop: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
+
+        <Box
+          sx={{
+            p: 1.5,
+            borderTop: "1px solid",
+            borderColor: "divider",
+            textAlign: "center",
+          }}
+        >
           <Button
             size="small"
             fullWidth
@@ -189,76 +227,46 @@ const NotificationBadge = () => {
   );
 };
 
-// Theme Toggle component
-const ThemeToggle = () => {
-  const theme = useTheme();
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-    // Implement actual theme change functionality here
-    // This is just a visual demo
-  };
-  
-  return (
-    <Tooltip title={isDarkMode ? "Light Mode" : "Dark Mode"}>
-      <IconButton color="inherit" onClick={toggleTheme}>
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={isDarkMode ? 'dark' : 'light'}
-            initial={{ scale: 0.5, opacity: 0, rotate: 180 }}
-            animate={{ scale: 1, opacity: 1, rotate: 0 }}
-            exit={{ scale: 0.5, opacity: 0, rotate: -180 }}
-            transition={{ duration: 0.3 }}
-          >
-            {isDarkMode ? <LightMode /> : <DarkMode />}
-          </motion.div>
-        </AnimatePresence>
-      </IconButton>
-    </Tooltip>
-  );
-};
-
-// Elevated App Bar component with scroll behavior
 const ElevatedAppBar = ({ children }) => {
   const trigger = useScrollTrigger({
     disableHysteresis: true,
     threshold: 0,
   });
-  
+
   return React.cloneElement(children, {
     elevation: trigger ? 4 : 0,
     sx: {
       ...children.props.sx,
-      backdropFilter: trigger ? 'blur(10px)' : 'none',
-      backgroundColor: trigger 
+      backdropFilter: trigger ? "blur(10px)" : "none",
+      backgroundColor: trigger
         ? (theme) => alpha(theme.palette.background.paper, 0.9)
         : (theme) => theme.palette.background.paper,
-      borderBottom: (theme) => 
-        trigger ? 'none' : `1px solid ${theme.palette.divider}`,
-      transition: (theme) => 
-        theme.transitions.create(['background-color', 'box-shadow', 'border-bottom'], {
-          duration: theme.transitions.duration.short,
-        }),
-    }
+      borderBottom: (theme) =>
+        trigger ? "none" : `1px solid ${theme.palette.divider}`,
+      transition: (theme) =>
+        theme.transitions.create(
+          ["background-color", "box-shadow", "border-bottom"],
+          {
+            duration: theme.transitions.duration.short,
+          }
+        ),
+    },
   });
 };
 
-// Main Header Component
 const Header = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
-  
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmall = useMediaQuery(theme.breakpoints.down("sm"));
+
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [userMenuAnchorEl, setUserMenuAnchorEl] = useState(null);
-  
-  // Handle scroll transparency effect
+
   const [scrolled, setScrolled] = useState(false);
-  
+
   useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > 10;
@@ -266,57 +274,74 @@ const Header = () => {
         setScrolled(isScrolled);
       }
     };
-    
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [scrolled]);
-  
-  // Check if the current page is active
+
   const isActive = (path) => {
     return location.pathname === path;
   };
-  
-  // Handle user menu open/close
+
   const handleUserMenuOpen = (event) => {
     setUserMenuAnchorEl(event.currentTarget);
   };
-  
+
   const handleUserMenuClose = () => {
     setUserMenuAnchorEl(null);
   };
-  
-  // Handle mobile drawer toggle
+
   const handleDrawerToggle = () => {
     setMobileDrawerOpen(!mobileDrawerOpen);
   };
-  
-  // Handle logout
+
   const handleLogout = async () => {
     handleUserMenuClose();
     await logout();
-    navigate('/login');
+    navigate("/login");
   };
-  
-  // Mobile drawer content
+
   const mobileDrawerContent = (
-    <Box sx={{ width: 280, height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid', borderColor: 'divider' }}>
+    <Box
+      sx={{
+        width: 280,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Box
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderBottom: "1px solid",
+          borderColor: "divider",
+        }}
+      >
         <Logo size="medium" />
       </Box>
-      
+
       {currentUser ? (
         <>
-          <Box sx={{ p: 2.5, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Avatar 
+          <Box
+            sx={{ p: 2.5, borderBottom: "1px solid", borderColor: "divider" }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Avatar
                 src={currentUser.photoURL}
                 alt={currentUser.displayName || "User"}
                 sx={{ width: 40, height: 40 }}
               >
-                {currentUser.displayName ? currentUser.displayName[0].toUpperCase() : <Person />}
+                {currentUser.displayName ? (
+                  currentUser.displayName[0].toUpperCase()
+                ) : (
+                  <Person />
+                )}
               </Avatar>
-              
-              <Box sx={{ ml: 1.5, overflow: 'hidden' }}>
+
+              <Box sx={{ ml: 1.5, overflow: "hidden" }}>
                 <Typography variant="subtitle2" noWrap fontWeight={600}>
                   {currentUser.displayName || "User"}
                 </Typography>
@@ -326,23 +351,23 @@ const Header = () => {
               </Box>
             </Box>
           </Box>
-          
+
           <List component="nav" sx={{ flexGrow: 1, p: 2 }}>
-            <ListItem 
-              button 
-              component={RouterLink} 
-              to="/" 
-              selected={isActive('/')}
+            <ListItem
+              button
+              component={RouterLink}
+              to="/"
+              selected={isActive("/")}
               onClick={() => setMobileDrawerOpen(false)}
               sx={{
                 borderRadius: 2,
                 mb: 1,
-                '&.Mui-selected': {
+                "&.Mui-selected": {
                   backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  '&:hover': {
+                  "&:hover": {
                     backgroundColor: alpha(theme.palette.primary.main, 0.15),
                   },
-                  '& .MuiListItemIcon-root': {
+                  "& .MuiListItemIcon-root": {
                     color: theme.palette.primary.main,
                   },
                 },
@@ -353,22 +378,22 @@ const Header = () => {
               </ListItemIcon>
               <ListItemText primary="Dashboard" />
             </ListItem>
-            
-            <ListItem 
-              button 
-              component={RouterLink} 
-              to="/new-meeting" 
-              selected={isActive('/new-meeting')}
+
+            <ListItem
+              button
+              component={RouterLink}
+              to="/new-meeting"
+              selected={isActive("/new-meeting")}
               onClick={() => setMobileDrawerOpen(false)}
               sx={{
                 borderRadius: 2,
                 mb: 1,
-                '&.Mui-selected': {
+                "&.Mui-selected": {
                   backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  '&:hover': {
+                  "&:hover": {
                     backgroundColor: alpha(theme.palette.primary.main, 0.15),
                   },
-                  '& .MuiListItemIcon-root': {
+                  "& .MuiListItemIcon-root": {
                     color: theme.palette.primary.main,
                   },
                 },
@@ -379,24 +404,24 @@ const Header = () => {
               </ListItemIcon>
               <ListItemText primary="New Recording" />
             </ListItem>
-            
+
             <Divider sx={{ my: 2 }} />
-            
-            <ListItem 
-              button 
-              component={RouterLink} 
-              to="/profile" 
-              selected={isActive('/profile')}
+
+            <ListItem
+              button
+              component={RouterLink}
+              to="/profile"
+              selected={isActive("/profile")}
               onClick={() => setMobileDrawerOpen(false)}
               sx={{
                 borderRadius: 2,
                 mb: 1,
-                '&.Mui-selected': {
+                "&.Mui-selected": {
                   backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  '&:hover': {
+                  "&:hover": {
                     backgroundColor: alpha(theme.palette.primary.main, 0.15),
                   },
-                  '& .MuiListItemIcon-root': {
+                  "& .MuiListItemIcon-root": {
                     color: theme.palette.primary.main,
                   },
                 },
@@ -407,25 +432,28 @@ const Header = () => {
               </ListItemIcon>
               <ListItemText primary="My Profile" />
             </ListItem>
-            
-            <ListItem 
-              button
-              onClick={handleLogout}
-              sx={{ borderRadius: 2 }}
-            >
+
+            <ListItem button onClick={handleLogout} sx={{ borderRadius: 2 }}>
               <ListItemIcon>
                 <Logout />
               </ListItemIcon>
               <ListItemText primary="Sign Out" />
             </ListItem>
           </List>
-          
-          <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
-            <ThemeToggle />
-          </Box>
+
+
         </>
       ) : (
-        <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexGrow: 1 }}>
+        <Box
+          sx={{
+            p: 4,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            flexGrow: 1,
+          }}
+        >
           <Button
             variant="contained"
             component={RouterLink}
@@ -441,33 +469,37 @@ const Header = () => {
       )}
     </Box>
   );
-  
+
   return (
     <>
       <ElevatedAppBar>
-        <AppBar 
-          position="fixed" 
-          color="inherit" 
-          elevation={0}
-        >
+        <AppBar position="fixed" color="inherit" elevation={0}>
           <Container maxWidth="xl">
             <Toolbar disableGutters>
-              {/* Logo */}
-              <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: { xs: 1, md: 0 }, mr: { md: 3 } }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  flexGrow: { xs: 1, md: 0 },
+                  mr: { md: 3 },
+                }}
+              >
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <RouterLink to="/" style={{ textDecoration: 'none', display: 'flex' }}>
+                  <RouterLink
+                    to="/"
+                    style={{ textDecoration: "none", display: "flex" }}
+                  >
                     <Logo size={isMobile ? "small" : "medium"} />
                   </RouterLink>
                 </motion.div>
               </Box>
-              
-              {/* Desktop Navigation */}
+
               {!isMobile && currentUser && (
-                <Box sx={{ display: 'flex', flexGrow: 1 }}>
+                <Box sx={{ display: "flex", flexGrow: 1 }}>
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -476,28 +508,30 @@ const Header = () => {
                     <Button
                       component={RouterLink}
                       to="/"
-                      color={isActive('/') ? 'primary' : 'inherit'}
+                      color={isActive("/") ? "primary" : "inherit"}
                       sx={{
                         mx: 1,
-                        fontWeight: isActive('/') ? 600 : 500,
-                        position: 'relative',
-                        '&::after': isActive('/') ? {
-                          content: '""',
-                          position: 'absolute',
-                          bottom: 6,
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          width: 16,
-                          height: 3,
-                          borderRadius: 4,
-                          backgroundColor: theme.palette.primary.main,
-                        } : {}
+                        fontWeight: isActive("/") ? 600 : 500,
+                        position: "relative",
+                        "&::after": isActive("/")
+                          ? {
+                            content: '""',
+                            position: "absolute",
+                            bottom: 6,
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            width: 16,
+                            height: 3,
+                            borderRadius: 4,
+                            backgroundColor: theme.palette.primary.main,
+                          }
+                          : {},
                       }}
                     >
                       Dashboard
                     </Button>
                   </motion.div>
-                  
+
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -506,22 +540,24 @@ const Header = () => {
                     <Button
                       component={RouterLink}
                       to="/new-meeting"
-                      color={isActive('/new-meeting') ? 'primary' : 'inherit'}
+                      color={isActive("/new-meeting") ? "primary" : "inherit"}
                       sx={{
                         mx: 1,
-                        fontWeight: isActive('/new-meeting') ? 600 : 500,
-                        position: 'relative',
-                        '&::after': isActive('/new-meeting') ? {
-                          content: '""',
-                          position: 'absolute',
-                          bottom: 6,
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          width: 16,
-                          height: 3,
-                          borderRadius: 4,
-                          backgroundColor: theme.palette.primary.main,
-                        } : {}
+                        fontWeight: isActive("/new-meeting") ? 600 : 500,
+                        position: "relative",
+                        "&::after": isActive("/new-meeting")
+                          ? {
+                            content: '""',
+                            position: "absolute",
+                            bottom: 6,
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            width: 16,
+                            height: 3,
+                            borderRadius: 4,
+                            backgroundColor: theme.palette.primary.main,
+                          }
+                          : {},
                       }}
                     >
                       New Recording
@@ -529,12 +565,10 @@ const Header = () => {
                   </motion.div>
                 </Box>
               )}
-              
-              {/* Right Side Actions */}
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+
+              <Box sx={{ display: "flex", alignItems: "center" }}>
                 {currentUser ? (
                   <>
-                    {/* New Meeting Button (Tablet/Desktop) */}
                     {!isSmall && (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.8 }}
@@ -548,10 +582,10 @@ const Header = () => {
                           component={RouterLink}
                           to="/new-meeting"
                           startIcon={<MicNone />}
-                          sx={{ 
+                          sx={{
                             mr: 2,
                             borderRadius: 3,
-                            boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+                            boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
                             background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
                           }}
                         >
@@ -559,8 +593,7 @@ const Header = () => {
                         </Button>
                       </motion.div>
                     )}
-                    
-                    {/* Notifications */}
+
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -568,19 +601,9 @@ const Header = () => {
                     >
                       <NotificationBadge />
                     </motion.div>
-                    
-                    {/* Theme Toggle (Desktop only) */}
-                    {!isMobile && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.5, delay: 0.5 }}
-                      >
-                        <ThemeToggle />
-                      </motion.div>
-                    )}
-                    
-                    {/* User Profile */}
+
+
+
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -594,22 +617,25 @@ const Header = () => {
                           aria-controls="menu-appbar"
                           aria-haspopup="true"
                         >
-                          <Avatar 
+                          <Avatar
                             src={currentUser.photoURL}
                             alt={currentUser.displayName}
-                            sx={{ 
-                              width: 32, 
+                            sx={{
+                              width: 32,
                               height: 32,
                               border: `2px solid ${theme.palette.primary.main}`,
                             }}
                           >
-                            {currentUser.displayName ? currentUser.displayName[0].toUpperCase() : <AccountCircle />}
+                            {currentUser.displayName ? (
+                              currentUser.displayName[0].toUpperCase()
+                            ) : (
+                              <AccountCircle />
+                            )}
                           </Avatar>
                         </IconButton>
                       </Tooltip>
                     </motion.div>
-                    
-                    {/* Mobile menu button */}
+
                     {isMobile && (
                       <IconButton
                         color="inherit"
@@ -621,19 +647,18 @@ const Header = () => {
                         <MenuIcon />
                       </IconButton>
                     )}
-                    
-                    {/* User Menu */}
+
                     <Menu
                       id="menu-appbar"
                       anchorEl={userMenuAnchorEl}
                       anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'right',
+                        vertical: "bottom",
+                        horizontal: "right",
                       }}
                       keepMounted
                       transformOrigin={{
-                        vertical: 'top',
-                        horizontal: 'right',
+                        vertical: "top",
+                        horizontal: "right",
                       }}
                       open={Boolean(userMenuAnchorEl)}
                       onClose={handleUserMenuClose}
@@ -643,7 +668,7 @@ const Header = () => {
                           minWidth: 200,
                           borderRadius: 2,
                           mt: 1,
-                        }
+                        },
                       }}
                     >
                       <Box sx={{ px: 2, py: 1.5 }}>
@@ -654,11 +679,11 @@ const Header = () => {
                           {currentUser.email}
                         </Typography>
                       </Box>
-                      
+
                       <Divider />
-                      
-                      <MenuItem 
-                        component={RouterLink} 
+
+                      <MenuItem
+                        component={RouterLink}
                         to="/profile"
                         onClick={handleUserMenuClose}
                         sx={{ py: 1.5 }}
@@ -668,33 +693,24 @@ const Header = () => {
                         </ListItemIcon>
                         My Profile
                       </MenuItem>
-                      
-                      <MenuItem 
-                        onClick={handleUserMenuClose}
-                        sx={{ py: 1.5 }}
-                      >
+
+                      <MenuItem onClick={handleUserMenuClose} sx={{ py: 1.5 }}>
                         <ListItemIcon>
                           <Settings fontSize="small" />
                         </ListItemIcon>
                         Settings
                       </MenuItem>
-                      
-                      <MenuItem 
-                        onClick={handleUserMenuClose}
-                        sx={{ py: 1.5 }}
-                      >
+
+                      <MenuItem onClick={handleUserMenuClose} sx={{ py: 1.5 }}>
                         <ListItemIcon>
                           <HelpOutline fontSize="small" />
                         </ListItemIcon>
                         Help Center
                       </MenuItem>
-                      
+
                       <Divider />
-                      
-                      <MenuItem 
-                        onClick={handleLogout}
-                        sx={{ py: 1.5 }}
-                      >
+
+                      <MenuItem onClick={handleLogout} sx={{ py: 1.5 }}>
                         <ListItemIcon>
                           <Logout fontSize="small" />
                         </ListItemIcon>
@@ -710,18 +726,7 @@ const Header = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <Button
-                      variant="contained"
-                      component={RouterLink}
-                      to="/login"
-                      sx={{ 
-                        borderRadius: 3,
-                        boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
-                        background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                      }}
-                    >
-                      Sign In
-                    </Button>
+
                   </motion.div>
                 )}
               </Box>
@@ -729,25 +734,23 @@ const Header = () => {
           </Container>
         </AppBar>
       </ElevatedAppBar>
-      
-      {/* Mobile Drawer */}
+
       <Drawer
         anchor="left"
         open={mobileDrawerOpen}
         onClose={handleDrawerToggle}
         ModalProps={{
-          keepMounted: true, // Better mobile performance
+          keepMounted: true,
         }}
         PaperProps={{
           sx: {
             width: 280,
-          }
+          },
         }}
       >
         {mobileDrawerContent}
       </Drawer>
-      
-      {/* Toolbar spacer */}
+
       <Toolbar />
     </>
   );

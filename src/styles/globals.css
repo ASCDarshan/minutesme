@@ -20,7 +20,6 @@ body {
   background-color: var(--secondary-color-light);
 }
 
-/* Custom scrollbar for better UX */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -40,31 +39,30 @@ body {
   background: #a8a8a8;
 }
 
-/* Focus outlines for accessibility */
 :focus {
   outline: 2px solid var(--primary-color-light);
   outline-offset: 2px;
 }
 
-/* Buttons and interactive elements */
-button, 
+button,
 [type='button'],
 [type='reset'],
 [type='submit'] {
   transition: all 0.2s ease;
 }
 
-/* Animation keyframes */
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }
 }
 
-/* Loading animation */
 .loading-dots {
   display: inline-flex;
 }
@@ -87,10 +85,13 @@ button,
 }
 
 @keyframes dots {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(0.5);
     opacity: 0.5;
   }
+
   50% {
     transform: scale(1);
     opacity: 1;
