@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useRef } from "react";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 import { useMeeting } from "../context/MeetingContext";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import {
@@ -11,38 +12,24 @@ import {
   Card,
   CardContent,
   IconButton,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
   CircularProgress,
-  Tooltip,
-  Zoom,
   useTheme,
   Stepper,
   Step,
   StepLabel,
   Divider,
-  Paper,
   alpha,
-  SvgIcon,
   Alert,
 } from "@mui/material";
 import {
   ArrowBack,
   Mic as MicIcon,
   Stop as StopIcon,
-  Delete as DeleteIcon,
-  CheckCircleOutline,
   Info as InfoIcon,
-  Lightbulb,
-  InsertDriveFile,
-  BrightnessMedium,
   Settings,
   Notes,
 } from "@mui/icons-material";
 
-// --- PASTE SoundWave, RecordButton, Timer, ProcessingUI components here ---
 const SoundWave = ({ isRecording, frequency = 1.5, amplitude = 20 }) => {
   const theme = useTheme();
   const bars = 32;
@@ -165,7 +152,6 @@ const RecordButton = ({ isRecording, onClick, size = 80 }) => {
   );
 };
 const Timer = ({ seconds }) => {
-  const theme = useTheme();
   const formatTime = (totalSeconds) => {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
@@ -322,9 +308,7 @@ const ProcessingUI = ({
     </Card>
   );
 };
-// -----------------------------------------------------------
 
-// Main NewMeeting Component
 const NewMeeting = () => {
   const {
     isRecording,
@@ -339,21 +323,17 @@ const NewMeeting = () => {
     loading,
     error,
     audioBlob,
-    previewStream,
   } = useMeeting();
 
   const [recordingTime, setRecordingTime] = useState(0);
   const [activeStep, setActiveStep] = useState(0);
   const [meetingTitle, setMeetingTitle] = useState("");
   const theme = useTheme();
-  const navigate = useNavigate();
   const timerRef = useRef(null);
   const waveFrequencyRef = useRef(1.5);
   const waveAmplitudeRef = useRef(20);
-  // Ref to track if the transition to step 1 has already happened for the current recording session
   const hasTransitionedToStep1 = useRef(false);
 
-  // Timer for recording duration
   useEffect(() => {
     if (isRecording) {
       timerRef.current = setInterval(() => {
@@ -365,14 +345,13 @@ const NewMeeting = () => {
     return () => clearInterval(timerRef.current);
   }, [isRecording]);
 
-  // Handle start/stop recording button click
   const toggleRecording = () => {
     console.log(
       `NewMeeting/toggleRecording: Button clicked. Current status='${mediaRecorderStatus}', isRecording=${isRecording}`
     );
     if (!isRecording && mediaRecorderStatus !== "acquiring_media") {
       setRecordingTime(0);
-      hasTransitionedToStep1.current = false; // Reset transition flag when starting new recording
+      hasTransitionedToStep1.current = false;
       startMeeting();
     } else if (isRecording) {
       endMeeting();
@@ -382,14 +361,11 @@ const NewMeeting = () => {
     }
   };
 
-  // --- EFFECT TO HANDLE STATE TRANSITION based on recorder status ---
   useEffect(() => {
-    // Log status on every change
     console.log(
       `NewMeeting/Status Effect Check: Status='${mediaRecorderStatus}', Step=${activeStep}, TransitionedFlag=${hasTransitionedToStep1.current}`
     );
 
-    // Condition to change step: Status becomes 'stopped', we are in step 0, AND we haven't already transitioned
     if (
       mediaRecorderStatus === "stopped" &&
       activeStep === 0 &&
@@ -399,24 +375,16 @@ const NewMeeting = () => {
         "NewMeeting/Status Effect: Detected 'stopped' status while in Step 0. Setting activeStep = 1"
       );
       setActiveStep(1);
-      hasTransitionedToStep1.current = true; // Set flag to prevent re-triggering
+      hasTransitionedToStep1.current = true;
     }
 
-    // Reset the transition flag if status goes back to idle (e.g., after error or discard)
-    // This might need adjustment based on exact desired flow after errors.
     if (mediaRecorderStatus === "idle" && activeStep !== 0) {
       console.log(
         "NewMeeting/Status Effect: Status is idle, resetting activeStep to 0"
       );
-      // setActiveStep(0); // Optionally reset step if recorder becomes idle unexpectedly
-      // hasTransitionedToStep1.current = false;
     }
-
-    // Rerun ONLY when status changes
-    // Reading activeStep inside is safe, but including it could cause loops if not careful
   }, [mediaRecorderStatus]);
 
-  // --- EFFECT TO TRIGGER TRANSCRIPTION automatically ---
   useEffect(() => {
     console.log(
       `NewMeeting/Transcription Trigger Check: Step=${activeStep}, Blob=${!!audioBlob}, Transcr=${!!transcription}, isTranscribing=${isTranscribing}, Error='${error}'`
@@ -436,8 +404,6 @@ const NewMeeting = () => {
       );
       transcribeMeetingAudio();
     }
-    // Optional: Log why it didn't trigger if conditions not met
-    // else if (activeStep === 1) { console.log("Transcription trigger conditions not fully met."); }
   }, [
     activeStep,
     audioBlob,
@@ -447,21 +413,17 @@ const NewMeeting = () => {
     transcribeMeetingAudio,
   ]);
 
-  // Handler for Step 2: Generate & Save
   const handleGenerateAndSave = async () => {
     console.log("NewMeeting/handleGenerateAndSave: Called.");
     if (!meetingTitle.trim()) {
       console.warn("NewMeeting/handleGenerateAndSave: Meeting title is empty.");
-      // TODO: Show user feedback
       return;
     }
     await generateAndSaveMeeting(meetingTitle);
   };
 
-  // Determine loading state for the final button
   const isProcessingMinutes = isGeneratingMinutes || loading;
 
-  // Determine which specific error to show in the ProcessingUI (non-recording/transcription errors)
   const processingError =
     error &&
       !error.startsWith("Transcription failed") &&
@@ -469,7 +431,6 @@ const NewMeeting = () => {
       ? error
       : null;
 
-  // Specific error for the recording step
   const recordingError =
     error &&
     (mediaRecorderStatus === "error" || error.startsWith("Recording Error"));
@@ -483,7 +444,6 @@ const NewMeeting = () => {
         pb: 8,
       }}
     >
-      {/* Background decor */}
       <Box
         sx={{
           position: "absolute",
@@ -501,7 +461,6 @@ const NewMeeting = () => {
       />
 
       <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1, pt: 3 }}>
-        {/* Back button */}
         <Box sx={{ mb: 4 }}>
           <Button
             component={RouterLink}
@@ -513,7 +472,6 @@ const NewMeeting = () => {
           </Button>
         </Box>
 
-        {/* Page title */}
         <Box sx={{ mb: 6, textAlign: "center" }}>
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -546,7 +504,6 @@ const NewMeeting = () => {
           </motion.div>
         </Box>
 
-        {/* Steps indicator */}
         <Box sx={{ mb: 5 }}>
           <Stepper
             activeStep={activeStep}
@@ -595,10 +552,8 @@ const NewMeeting = () => {
           </Stepper>
         </Box>
 
-        {/* Main Content Area */}
         <Box sx={{ display: "flex", justifyContent: "center", minHeight: 400 }}>
           <AnimatePresence mode="wait">
-            {/* --- Recording Step UI --- */}
             {activeStep === 0 && (
               <motion.div
                 key="recorder"
@@ -722,7 +677,6 @@ const NewMeeting = () => {
                         </Box>{" "}
                       </Box>
                     )}
-                    {/* Display Recording Error */}
                     {recordingError && (
                       <Alert severity="error" sx={{ mt: 2 }}>
                         {recordingError}
@@ -733,7 +687,6 @@ const NewMeeting = () => {
               </motion.div>
             )}
 
-            {/* --- Processing Step UI --- */}
             {activeStep === 1 && (
               <motion.div
                 key="processor"
@@ -744,7 +697,6 @@ const NewMeeting = () => {
                 style={{ width: "100%", maxWidth: 700 }}
               >
                 <Box>
-                  {/* --- Transcription Section --- */}
                   <Card
                     sx={{
                       borderRadius: 4,
@@ -780,7 +732,6 @@ const NewMeeting = () => {
                         </Box>
                       )}
 
-                      {/* Show specific transcription error */}
                       {error &&
                         !isTranscribing &&
                         error.startsWith("Transcription failed") && (
@@ -789,7 +740,6 @@ const NewMeeting = () => {
                           </Alert>
                         )}
 
-                      {/* Display Transcription Text */}
                       {transcription && !isTranscribing && (
                         <Box
                           sx={{
@@ -812,7 +762,6 @@ const NewMeeting = () => {
                         </Box>
                       )}
 
-                      {/* Placeholders */}
                       {!transcription &&
                         !isTranscribing &&
                         !error &&
@@ -835,7 +784,6 @@ const NewMeeting = () => {
                     </CardContent>
                   </Card>
 
-                  {/* --- Minutes Generation Section --- */}
                   {transcription &&
                     !isTranscribing &&
                     !error?.startsWith("Transcription failed") && (
@@ -844,19 +792,16 @@ const NewMeeting = () => {
                         setMeetingTitle={setMeetingTitle}
                         onProcess={handleGenerateAndSave}
                         isLoading={isProcessingMinutes}
-                        currentError={processingError} // Show relevant errors here
+                        currentError={processingError}
                       />
                     )}
 
-                  {/* Button to record again */}
                   <Box sx={{ mt: 3, textAlign: "center" }}>
                     <Button
                       onClick={() => {
                         console.log("NewMeeting: Clicked 'Record Again'");
                         setActiveStep(0);
                         setRecordingTime(0);
-                        // Reset context state if needed, but startMeeting does this
-                        // Maybe call a specific reset function in context?
                       }}
                       color="inherit"
                       startIcon={<MicIcon />}
