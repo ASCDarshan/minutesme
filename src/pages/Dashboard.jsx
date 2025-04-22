@@ -1,13 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  useRef,
-} from "react";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useMeeting } from "../context/MeetingContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,10 +11,8 @@ import {
   Button,
   IconButton,
   Paper,
-  Divider,
   Tooltip,
   Grid,
-  Avatar,
   Menu,
   MenuItem,
   ListItemIcon,
@@ -36,16 +27,10 @@ import {
   alpha,
   Skeleton,
   Fab,
-  Card,
-  CardContent,
   Chip,
-  Badge,
-  CardHeader,
 } from "@mui/material";
 import {
   Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
   Sort as SortIcon,
   Search as SearchIcon,
   Close as CloseIcon,
@@ -53,647 +38,23 @@ import {
   KeyboardArrowUp as KeyboardArrowUpIcon,
   GridView as GridViewIcon,
   ViewList as ListViewIcon,
-  WavingHand,
   TaskAlt,
   Mic,
-  Share as ShareIcon,
-  Download as DownloadIcon,
-  MoreVert as MoreVertIcon,
-  AccessTime,
-  FilterList,
   CalendarToday,
-  NoteAlt,
-  EditNote,
+  AccessTime,
 } from "@mui/icons-material";
 import moment from "moment";
-
-const DashboardGreeting = ({ name }) => {
-  const theme = useTheme();
-  const [greeting, setGreeting] = useState("");
-
-  useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) setGreeting("Good morning");
-    else if (hour < 18) setGreeting("Good afternoon");
-    else setGreeting("Good evening");
-  }, []);
-
-  return (
-    <Box sx={{ mb: 4 }}>
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Typography
-          variant="h4"
-          component="h1"
-          fontWeight={700}
-          sx={{ display: "flex", alignItems: "center" }}
-        >
-          {greeting}, {name || "User"}!
-          <motion.div
-            animate={{ rotate: [0, 15, -10, 15, 0] }}
-            transition={{ duration: 1.5, delay: 0.5 }}
-            style={{ display: "inline-flex", marginLeft: "10px" }}
-          >
-            <WavingHand color="primary" />
-          </motion.div>
-        </Typography>
-      </motion.div>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
-      >
-        <Typography
-          variant="h6"
-          color="text.secondary"
-          sx={{ mt: 1, fontWeight: 400 }}
-        >
-          Here's an overview of your recorded meetings.
-        </Typography>
-      </motion.div>
-    </Box>
-  );
-};
-
-const StatCard = ({ icon, title, value, delay = 0, color }) => {
-  const theme = useTheme();
-  const ref = useRef(null);
-
-  return (
-    <Grid item xs={6} sm={6} md={3}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: delay }}
-        whileHover={{ y: -5, transition: { duration: 0.2 } }}
-        style={{ height: "100%" }}
-      >
-        <Paper
-          elevation={0}
-          sx={{
-            p: 3,
-            height: "100%",
-            borderRadius: 3,
-            border: "1px solid",
-            borderColor: alpha(color || theme.palette.primary.main, 0.2),
-            background: `linear-gradient(145deg, ${alpha(
-              color || theme.palette.primary.main,
-              0.05
-            )}, ${alpha(color || theme.palette.primary.main, 0.1)})`,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            overflow: "hidden",
-            position: "relative",
-          }}
-        >
-          <Box
-            sx={{
-              position: "absolute",
-              right: -10,
-              top: -10,
-              opacity: 0.1,
-              transform: "rotate(10deg)",
-              fontSize: "5rem",
-            }}
-          >
-            {icon}
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-            <Avatar
-              sx={{
-                bgcolor: alpha(color || theme.palette.primary.main, 0.15),
-                color: color || theme.palette.primary.main,
-                mr: 1.5,
-              }}
-            >
-              {icon}
-            </Avatar>
-            <Typography
-              variant="subtitle2"
-              color="text.secondary"
-              fontWeight={500}
-            >
-              {title}
-            </Typography>
-          </Box>
-          <Typography variant="h4" fontWeight={700} color="text.primary">
-            {value}
-          </Typography>
-        </Paper>
-      </motion.div>
-    </Grid>
-  );
-};
-
-const MeetingCard = ({ meeting, onDelete, onEdit }) => {
-  const theme = useTheme();
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
-
-  const handleMenuClick = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = (event) => {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    setAnchorEl(null);
-  };
-
-  const handleDelete = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (window.confirm("Delete this meeting?")) {
-      onDelete(meeting.id);
-    }
-    setAnchorEl(null);
-  };
-
-  const formattedDate = meeting.createdAt?.toDate()
-    ? moment(meeting.createdAt.toDate()).format("ddd, MMM D")
-    : "--";
-  const formattedTime = meeting.createdAt?.toDate()
-    ? moment(meeting.createdAt.toDate()).format("h:mm A")
-    : "--";
-  const relativeTime = meeting.createdAt?.toDate()
-    ? moment(meeting.createdAt.toDate()).fromNow()
-    : "";
-
-  const getStatusChip = () => {
-    switch (meeting.status) {
-      case "completed":
-        return (
-          <Chip
-            label="Processed"
-            size="small"
-            color="success"
-            variant="outlined"
-            icon={<TaskAlt fontSize="small" />}
-          />
-        );
-      case "completed_partial":
-        return (
-          <Chip
-            label="Partial"
-            size="small"
-            color="warning"
-            variant="outlined"
-            icon={<EditNote fontSize="small" />}
-          />
-        );
-      case "failed":
-        return (
-          <Chip label="Failed" size="small" color="error" variant="outlined" />
-        );
-      default:
-        return <Chip label={meeting.status || "Draft"} size="small" />;
-    }
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      whileHover={{
-        y: -4,
-        transition: { duration: 0.2 },
-      }}
-      style={{ height: "100%" }}
-    >
-      <Card
-        component={RouterLink}
-        to={`/meeting/${meeting.id}`}
-        sx={{
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          textDecoration: "none",
-          borderRadius: 3,
-          overflow: "hidden",
-          background: theme.palette.background.paper,
-          position: "relative",
-          transition: "all 0.3s ease",
-          border: "1px solid",
-          borderColor: theme.palette.divider,
-          boxShadow: "0 4px 15px rgba(0, 0, 0, 0.05)",
-          "&:hover": {
-            borderColor: theme.palette.primary.light,
-            boxShadow: "0 8px 25px rgba(0, 0, 0, 0.08)",
-          },
-        }}
-      >
-        <CardHeader
-          avatar={
-            <Avatar
-              sx={{
-                bgcolor: alpha(theme.palette.primary.main, 0.1),
-                color: theme.palette.primary.main,
-              }}
-            >
-              {meeting.title?.[0]?.toUpperCase() || "M"}
-            </Avatar>
-          }
-          action={
-            <IconButton aria-label="settings" onClick={handleMenuClick}>
-              <MoreVertIcon />
-            </IconButton>
-          }
-          title={
-            <Tooltip title={meeting.title || "Untitled Meeting"}>
-              <Typography
-                variant="h6"
-                fontWeight={600}
-                noWrap
-                color="text.primary"
-                sx={{ fontSize: "1rem" }}
-              >
-                {meeting.title || "Untitled Meeting"}
-              </Typography>
-            </Tooltip>
-          }
-          subheader={
-            <Typography variant="caption" color="text.secondary">
-              {formattedDate} • {relativeTime}
-            </Typography>
-          }
-          sx={{ pb: 0 }}
-        />
-
-        <CardContent sx={{ pt: 1, flexGrow: 1, pb: 1 }}>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{
-              mb: 2,
-              height: 40,
-              overflow: "hidden",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-            }}
-          >
-            {meeting?.minutesData?.transcription
-              ? "Transcript available..."
-              : `Created ${relativeTime}`}
-          </Typography>
-        </CardContent>
-
-        <Divider />
-
-        <Box
-          sx={{
-            p: 2,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            bgcolor: alpha(theme.palette.secondary.main, 0.2),
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Tooltip title={`Created by ${meeting.creatorName || "Unknown"}`}>
-              <Avatar
-                src={meeting.creatorPhotoURL}
-                sx={{ width: 28, height: 28, fontSize: "0.8rem" }}
-              >
-                {meeting.creatorName?.[0] || "?"}
-              </Avatar>
-            </Tooltip>
-            <Typography variant="caption" color="text.black">
-              {formattedTime}
-            </Typography>
-          </Box>
-          {getStatusChip()}
-        </Box>
-
-        <Menu
-          id={`meeting-menu-${meeting.id}`}
-          anchorEl={anchorEl}
-          open={open}
-          onClose={handleMenuClose}
-          onClick={(e) => e.stopPropagation()}
-          PaperProps={{
-            elevation: 3,
-            sx: {
-              borderRadius: 2,
-              minWidth: 180,
-              overflow: "hidden",
-              boxShadow: "0 8px 20px rgba(0, 0, 0, 0.1)",
-            },
-          }}
-        >
-          <MenuItem
-            onClick={(e) => {
-              handleMenuClose(e);
-            }}
-          >
-            <ListItemIcon>
-              <ShareIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Share" />
-          </MenuItem>
-          <MenuItem
-            onClick={(e) => {
-              handleMenuClose(e);
-            }}
-          >
-            <ListItemIcon>
-              <DownloadIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Download" />
-          </MenuItem>
-          <Divider />
-          <MenuItem
-            onClick={handleDelete}
-            sx={{ color: theme.palette.error.main }}
-          >
-            <ListItemIcon>
-              <DeleteIcon fontSize="small" color="error" />
-            </ListItemIcon>
-            <ListItemText primary="Delete" />
-          </MenuItem>
-        </Menu>
-      </Card>
-    </motion.div >
-  );
-};
-
-const MeetingListItem = ({ meeting, onDelete }) => {
-  const theme = useTheme();
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
-
-  const handleMenuClick = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = (event) => {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    setAnchorEl(null);
-  };
-
-  const handleDelete = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (window.confirm("Delete this meeting?")) {
-      onDelete(meeting.id);
-    }
-    setAnchorEl(null);
-  };
-
-  const formattedDate = meeting.createdAt?.toDate()
-    ? moment(meeting.createdAt.toDate()).format("ddd, MMM D")
-    : "--";
-  const formattedTime = meeting.createdAt?.toDate()
-    ? moment(meeting.createdAt.toDate()).format("h:mm A")
-    : "--";
-  const relativeTime = meeting.createdAt?.toDate()
-    ? moment(meeting.createdAt.toDate()).fromNow()
-    : "";
-
-  const getStatusChip = () => {
-    switch (meeting.status) {
-      case "completed":
-        return (
-          <Chip
-            label="Processed"
-            size="small"
-            color="success"
-            variant="outlined"
-            icon={<TaskAlt fontSize="small" />}
-          />
-        );
-      case "completed_partial":
-        return (
-          <Chip
-            label="Partial"
-            size="small"
-            color="warning"
-            variant="outlined"
-            icon={<EditNote fontSize="small" />}
-          />
-        );
-      case "failed":
-        return (
-          <Chip label="Failed" size="small" color="error" variant="outlined" />
-        );
-      default:
-        return <Chip label={meeting.status || "Draft"} size="small" />;
-    }
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.4 }}
-      whileHover={{
-        y: -2,
-        transition: { duration: 0.2 },
-      }}
-    >
-      <Card
-        component={RouterLink}
-        to={`/meeting/${meeting.id}`}
-        sx={{
-          display: "flex",
-          textDecoration: "none",
-          borderRadius: 3,
-          overflow: "hidden",
-          background: theme.palette.background.paper,
-          transition: "all 0.3s ease",
-          border: "1px solid",
-          borderColor: theme.palette.divider,
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
-          mb: 2,
-          "&:hover": {
-            borderColor: theme.palette.primary.light,
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
-          },
-        }}
-      >
-        <Box sx={{ display: "flex", width: "100%", alignItems: "center" }}>
-          <Box sx={{ p: 2, display: "flex", alignItems: "center" }}>
-            <Avatar
-              sx={{
-                bgcolor: alpha(theme.palette.primary.main, 0.1),
-                color: theme.palette.primary.main,
-                height: 40,
-                width: 40,
-              }}
-            >
-              {meeting.title?.[0]?.toUpperCase() || "M"}
-            </Avatar>
-          </Box>
-
-          <Box sx={{ flexGrow: 1, py: 2, pr: 2 }}>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-              }}
-            >
-              <Box>
-                <Typography
-                  variant="subtitle1"
-                  fontWeight={600}
-                  color="text.primary"
-                >
-                  {meeting.title || "Untitled Meeting"}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {formattedDate} • {formattedTime} • {relativeTime}
-                </Typography>
-              </Box>
-              <Box
-                sx={{ display: "flex", alignItems: "center", gap: 1, ml: 2 }}
-              >
-                {getStatusChip()}
-                <IconButton size="small" onClick={handleMenuClick}>
-                  <MoreVertIcon fontSize="small" />
-                </IconButton>
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-
-        <Menu
-          id={`meeting-list-menu-${meeting.id}`}
-          anchorEl={anchorEl}
-          open={open}
-          onClose={handleMenuClose}
-          onClick={(e) => e.stopPropagation()}
-          PaperProps={{
-            elevation: 3,
-            sx: {
-              borderRadius: 2,
-              minWidth: 180,
-              overflow: "hidden",
-              boxShadow: "0 8px 20px rgba(0, 0, 0, 0.1)",
-            },
-          }}
-        >
-          <MenuItem
-            onClick={(e) => {
-              handleMenuClose(e);
-            }}
-          >
-            <ListItemIcon>
-              <ShareIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Share" />
-          </MenuItem>
-          <MenuItem
-            onClick={(e) => {
-              handleMenuClose(e);
-            }}
-          >
-            <ListItemIcon>
-              <DownloadIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Download" />
-          </MenuItem>
-          <Divider />
-          <MenuItem
-            onClick={handleDelete}
-            sx={{ color: theme.palette.error.main }}
-          >
-            <ListItemIcon>
-              <DeleteIcon fontSize="small" color="error" />
-            </ListItemIcon>
-            <ListItemText primary="Delete" />
-          </MenuItem>
-        </Menu>
-      </Card>
-    </motion.div>
-  );
-};
-
-const EmptyState = ({ onCreateNew }) => {
-  const theme = useTheme();
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.5, duration: 0.5 }}
-    >
-      <Paper
-        elevation={0}
-        sx={{
-          textAlign: "center",
-          py: { xs: 8, md: 12 },
-          px: 3,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: 400,
-          borderRadius: 4,
-          border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-          bgcolor: alpha(theme.palette.background.paper, 0.7),
-          backdropFilter: "blur(10px)",
-        }}
-      >
-        <Box
-          sx={{
-            width: 100,
-            height: 100,
-            borderRadius: "50%",
-            bgcolor: alpha(theme.palette.primary.main, 0.1),
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            mb: 3,
-          }}
-        >
-          <Mic sx={{ fontSize: 50, color: theme.palette.primary.main }} />
-        </Box>
-
-        <Typography variant="h5" fontWeight={600} gutterBottom>
-          Your meeting space is empty
-        </Typography>
-
-        <Typography
-          variant="body1"
-          color="text.secondary"
-          sx={{ mb: 4, maxWidth: 400 }}
-        >
-          Start by recording your first meeting to generate AI minutes.
-        </Typography>
-
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <Button
-            variant="contained"
-            onClick={onCreateNew}
-            size="large"
-            startIcon={<AddIcon />}
-            sx={{ borderRadius: "50px", px: 4, py: 1.5 }}
-          >
-            Record First Meeting
-          </Button>
-        </motion.div>
-      </Paper>
-    </motion.div>
-  );
-};
-
+import DashboardGreeting from "../components/Dashboard/DashboardGreeting";
+import StatCard from "../components/Dashboard/StatCard";
+import MeetingCard from "../components/Dashboard/MeetingCard";
+import MeetingListItem from "../components/Dashboard/MeetingListItem";
+import EmptyState from "../components/Dashboard/EmptyState";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { meetings, loadUserMeetings, loading, error, removeMeeting } =
     useMeeting();
@@ -707,10 +68,6 @@ const Dashboard = () => {
     message: "",
     type: "success",
   });
-
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const navigate = useNavigate();
 
   const stableLoadUserMeetings = useCallback(loadUserMeetings, [
     loadUserMeetings,
@@ -867,7 +224,6 @@ const Dashboard = () => {
           />
         </Grid>
 
-        {/* Toolbar Section */}
         <Paper
           elevation={0}
           sx={{
@@ -1006,7 +362,6 @@ const Dashboard = () => {
                     </Button>
                   </Tooltip>
                   <Tooltip title="List View">
-
                     <Button
                       onClick={() => setViewMode("grid")}
                       sx={{
@@ -1024,8 +379,6 @@ const Dashboard = () => {
                     </Button>
                   </Tooltip>
                 </ButtonGroup>
-
-
               </Box>
 
               <motion.div

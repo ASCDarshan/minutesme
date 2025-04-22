@@ -1,6 +1,6 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Box, CircularProgress, Container, Typography } from "@mui/material";
+import { Box, Container } from "@mui/material";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { MeetingProvider } from "./context/MeetingContext";
 
@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import NewMeeting from "./pages/NewMeeting";
 import MeetingDetails from "./pages/MeetingDetails";
 import Profile from "./pages/Profile";
+import ScrollToTop from "./components/UI/ScrollToTop";
 
 const Loading = () => (
   <Container maxWidth="sm" sx={{ py: 15, textAlign: "center" }}>
@@ -104,6 +105,7 @@ const AppContent = () => {
 const App = () => {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <MeetingProvider>
           <AppContent />

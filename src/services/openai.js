@@ -6,17 +6,14 @@ const openai = new OpenAI({
 });
 
 export const transcribeAudio = async (audioBlob) => {
-  console.log("OpenAI Service: Starting transcription...");
   try {
     const file = new File([audioBlob], "audio.webm", { type: "audio/webm" });
 
-    console.log("OpenAI Service: Calling OpenAI audio.transcriptions.create");
     const response = await openai.audio.transcriptions.create({
       file: file,
       model: "whisper-1",
     });
 
-    console.log("OpenAI Service: Transcription successful.");
     return response.text;
   } catch (error) {
     console.error("OpenAI Service: Error during transcription:", error);
@@ -38,9 +35,6 @@ export const generateMinutes = async (
   transcription,
   meetingTitle = "Meeting"
 ) => {
-  console.log(
-    `OpenAI Service: Starting minutes generation for title: "${meetingTitle}"`
-  );
   if (!transcription || transcription.trim() === "") {
     console.error(
       "OpenAI Service: Cannot generate minutes with empty transcription."
@@ -73,7 +67,6 @@ export const generateMinutes = async (
       Ensure the entire output is valid JSON.
     `;
 
-    console.log("OpenAI Service: Calling OpenAI chat.completions.create");
     const response = await openai.chat.completions.create({
       model: "gpt-4-turbo",
       messages: [
@@ -92,7 +85,6 @@ export const generateMinutes = async (
       response_format: { type: "json_object" },
     });
 
-    console.log("OpenAI Service: Received response from chat completions API.");
     const minutesText = response.choices[0]?.message?.content;
 
     if (!minutesText) {
@@ -102,11 +94,8 @@ export const generateMinutes = async (
       );
     }
 
-    console.log("OpenAI Service: Raw minutes response content:", minutesText);
-
     try {
       const parsedMinutes = JSON.parse(minutesText);
-      console.log("OpenAI Service: Successfully parsed minutes JSON.");
       return parsedMinutes;
     } catch (parseError) {
       console.error(
