@@ -1,17 +1,17 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useRef } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { useMeeting } from "../context/MeetingContext";
-import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Box,
   Button,
   Container,
   Typography,
-  TextField,
   Card,
   CardContent,
-  IconButton,
   CircularProgress,
   useTheme,
   Stepper,
@@ -24,290 +24,13 @@ import {
 import {
   ArrowBack,
   Mic as MicIcon,
-  Stop as StopIcon,
   Info as InfoIcon,
-  Settings,
   Notes,
 } from "@mui/icons-material";
-
-const SoundWave = ({ isRecording, frequency = 1.5, amplitude = 20 }) => {
-  const theme = useTheme();
-  const bars = 32;
-  const controls = useAnimation();
-  useEffect(() => {
-    if (isRecording) {
-      controls.start((i) => ({
-        height: [
-          `${5 + Math.random() * amplitude}px`,
-          `${15 + Math.random() * amplitude * 1.5}px`,
-          `${5 + Math.random() * amplitude}px`,
-        ],
-        backgroundColor: [
-          theme.palette.primary.light,
-          theme.palette.primary.main,
-          theme.palette.primary.light,
-        ],
-        transition: {
-          duration: 1 + Math.random() * frequency,
-          repeat: Infinity,
-          repeatType: "reverse",
-          ease: "easeInOut",
-          delay: i * 0.08,
-        },
-      }));
-    } else {
-      controls.start({
-        height: "5px",
-        backgroundColor: theme.palette.primary.light,
-        transition: { duration: 0.5 },
-      });
-    }
-  }, [isRecording, controls, amplitude, frequency, theme]);
-
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: 80,
-        width: "100%",
-      }}
-    >
-      {" "}
-      {[...Array(bars)].map((_, i) => (
-        <motion.div
-          key={i}
-          custom={i}
-          animate={controls}
-          style={{
-            width: "6px",
-            height: "5px",
-            margin: "0 2px",
-            borderRadius: "4px",
-            backgroundColor: theme.palette.primary.light,
-          }}
-        />
-      ))}{" "}
-    </Box>
-  );
-};
-const RecordButton = ({ isRecording, onClick, size = 80 }) => {
-  const theme = useTheme();
-  return (
-    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-      {" "}
-      <IconButton
-        onClick={onClick}
-        sx={{
-          width: size,
-          height: size,
-          bgcolor: isRecording ? "error.main" : "primary.main",
-          color: "white",
-          transition: "all 0.3s ease",
-          position: "relative",
-          "&:hover": { bgcolor: isRecording ? "error.dark" : "primary.dark" },
-          boxShadow: `0 8px 20px ${isRecording
-            ? alpha(theme.palette.error.main, 0.5)
-            : alpha(theme.palette.primary.main, 0.5)
-            }`,
-        }}
-      >
-        {" "}
-        {isRecording ? (
-          <StopIcon sx={{ fontSize: size / 3 }} />
-        ) : (
-          <MicIcon sx={{ fontSize: size / 3 }} />
-        )}{" "}
-      </IconButton>{" "}
-      {isRecording && (
-        <>
-          {" "}
-          {[...Array(3)].map((_, i) => (
-            <Box
-              component={motion.div}
-              key={i}
-              sx={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                width: size,
-                height: size,
-                borderRadius: "50%",
-                border: `2px solid ${theme.palette.error.main}`,
-              }}
-              initial={{ opacity: 0.7, scale: 1, x: "-50%", y: "-50%" }}
-              animate={{ opacity: 0, scale: 2 + i * 0.5, x: "-50%", y: "-50%" }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                delay: i * 0.6,
-                ease: "easeOut",
-              }}
-            />
-          ))}{" "}
-        </>
-      )}{" "}
-    </motion.div>
-  );
-};
-const Timer = ({ seconds }) => {
-  const formatTime = (totalSeconds) => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${seconds
-      .toString()
-      .padStart(2, "0")}`;
-  };
-  return (
-    <Box sx={{ textAlign: "center", my: 2 }}>
-      {" "}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.5 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        {" "}
-        <Typography
-          variant="h2"
-          sx={{
-            fontWeight: 700,
-            fontFamily: "monospace",
-            color: seconds > 0 ? "error.main" : "text.primary",
-          }}
-        >
-          {" "}
-          {formatTime(seconds)}{" "}
-        </Typography>{" "}
-      </motion.div>{" "}
-    </Box>
-  );
-};
-const ProcessingUI = ({
-  onProcess,
-  meetingTitle,
-  setMeetingTitle,
-  isLoading,
-  currentError,
-}) => {
-  const theme = useTheme();
-  const [isButtonHovered, setIsButtonHovered] = useState(false);
-  const gradientBorder = {
-    "&::before": {
-      content: '""',
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      borderRadius: 3,
-      padding: "2px",
-      background: `linear-gradient(45deg, ${theme.palette.primary.light}, ${theme.palette.secondary.main})`,
-      WebkitMask:
-        "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-      WebkitMaskComposite: "xor",
-      maskComposite: "exclude",
-    },
-  };
-  return (
-    <Card
-      sx={{
-        borderRadius: 4,
-        overflow: "visible",
-        boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
-        position: "relative",
-        ...gradientBorder,
-      }}
-    >
-      {" "}
-      <CardContent sx={{ p: 4 }}>
-        {" "}
-        <Typography variant="h5" fontWeight={600} align="center" gutterBottom>
-          {" "}
-          Generate Minutes{" "}
-        </Typography>{" "}
-        <Typography
-          variant="body1"
-          color="text.secondary"
-          align="center"
-          sx={{ mb: 4 }}
-        >
-          {" "}
-          Enter a title and generate the final meeting minutes.{" "}
-        </Typography>{" "}
-        {currentError && (
-          <Alert severity="warning" sx={{ mb: 3 }}>
-            {" "}
-            {currentError}{" "}
-          </Alert>
-        )}{" "}
-        <Box sx={{ mb: 4 }}>
-          {" "}
-          <TextField
-            fullWidth
-            label="Meeting Title"
-            variant="outlined"
-            value={meetingTitle}
-            onChange={(e) => setMeetingTitle(e.target.value)}
-            placeholder="E.g., Weekly Team Sync, Product Planning"
-            disabled={isLoading}
-            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-          />{" "}
-        </Box>{" "}
-        <motion.div
-          whileHover={{ scale: isLoading ? 1 : 1.03 }}
-          whileTap={{ scale: isLoading ? 1 : 0.98 }}
-          onHoverStart={() => setIsButtonHovered(true)}
-          onHoverEnd={() => setIsButtonHovered(false)}
-        >
-          {" "}
-          <Button
-            variant="contained"
-            fullWidth
-            size="large"
-            onClick={onProcess}
-            disabled={!meetingTitle.trim() || isLoading}
-            startIcon={
-              isLoading ? (
-                <CircularProgress size={20} color="inherit" />
-              ) : (
-                <Settings />
-              )
-            }
-            sx={{
-              py: 1.5,
-              borderRadius: 3,
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
-            {" "}
-            <Box
-              component={motion.div}
-              sx={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background:
-                  "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%)",
-                zIndex: 0,
-              }}
-              initial={{ x: "-100%" }}
-              animate={{ x: isButtonHovered && !isLoading ? "100%" : "-100%" }}
-              transition={{ duration: 1, ease: "easeInOut" }}
-            />{" "}
-            <Box sx={{ position: "relative", zIndex: 1 }}>
-              {" "}
-              {isLoading ? "Generating..." : "Generate & Save Minutes"}{" "}
-            </Box>{" "}
-          </Button>{" "}
-        </motion.div>{" "}
-      </CardContent>{" "}
-    </Card>
-  );
-};
+import ProcessingUI from "../components/NewMeeting/ProcessingUI";
+import RecordButton from "../components/NewMeeting/RecordButton";
+import SoundWave from "../components/NewMeeting/SoundWave";
+import Timer from "../components/NewMeeting/Timer";
 
 const NewMeeting = () => {
   const {
@@ -346,34 +69,26 @@ const NewMeeting = () => {
   }, [isRecording]);
 
   const toggleRecording = () => {
-    console.log(
-      `NewMeeting/toggleRecording: Button clicked. Current status='${mediaRecorderStatus}', isRecording=${isRecording}`
-    );
+
     if (!isRecording && mediaRecorderStatus !== "acquiring_media") {
       setRecordingTime(0);
       hasTransitionedToStep1.current = false;
       startMeeting();
     } else if (isRecording) {
       endMeeting();
-      console.log(
-        "NewMeeting/toggleRecording: Called endMeeting. Waiting for status change effect."
-      );
+
     }
   };
 
   useEffect(() => {
-    console.log(
-      `NewMeeting/Status Effect Check: Status='${mediaRecorderStatus}', Step=${activeStep}, TransitionedFlag=${hasTransitionedToStep1.current}`
-    );
+
 
     if (
       mediaRecorderStatus === "stopped" &&
       activeStep === 0 &&
       !hasTransitionedToStep1.current
     ) {
-      console.log(
-        "NewMeeting/Status Effect: Detected 'stopped' status while in Step 0. Setting activeStep = 1"
-      );
+
       setActiveStep(1);
       hasTransitionedToStep1.current = true;
     }
@@ -382,6 +97,7 @@ const NewMeeting = () => {
       console.log(
         "NewMeeting/Status Effect: Status is idle, resetting activeStep to 0"
       );
+
     }
   }, [mediaRecorderStatus]);
 
@@ -414,7 +130,6 @@ const NewMeeting = () => {
   ]);
 
   const handleGenerateAndSave = async () => {
-    console.log("NewMeeting/handleGenerateAndSave: Called.");
     if (!meetingTitle.trim()) {
       console.warn("NewMeeting/handleGenerateAndSave: Meeting title is empty.");
       return;
@@ -799,7 +514,6 @@ const NewMeeting = () => {
                   <Box sx={{ mt: 3, textAlign: "center" }}>
                     <Button
                       onClick={() => {
-                        console.log("NewMeeting: Clicked 'Record Again'");
                         setActiveStep(0);
                         setRecordingTime(0);
                       }}

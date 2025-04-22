@@ -52,11 +52,9 @@ function MeetingProviderComponent({ children }) {
     audio: true,
     video: false,
     onStop: (blobUrl, blob) => {
-      console.log("CONTEXT/onStop: react-media-recorder onStop triggered.");
       saveAudioBlob(blob);
     },
     onStart: () => {
-      console.log("CONTEXT/onStart: react-media-recorder onStart triggered.");
       setError(null);
     },
     onError: (err) => {
@@ -71,14 +69,11 @@ function MeetingProviderComponent({ children }) {
   const isRecording = status === "recording";
 
   const saveAudioBlob = (blob) => {
-    console.log("CONTEXT/saveAudioBlob: Saving audio blob", blob);
     setAudioBlob(blob);
   };
 
   const startMeeting = () => {
-    console.log("CONTEXT/startMeeting: Attempting to start recording.");
     if (isRecording) {
-      console.warn("CONTEXT/startMeeting: Already recording.");
       return;
     }
     setError(null);
@@ -89,54 +84,36 @@ function MeetingProviderComponent({ children }) {
     setIsGeneratingMinutes(false);
     clearBlobUrl();
 
-    console.log("CONTEXT/startMeeting: Calling startMediaRecorder...");
     startMediaRecorder();
   };
 
   const endMeeting = () => {
-    console.log("CONTEXT/endMeeting: Attempting to stop recording.");
     if (!isRecording) {
-      console.warn("CONTEXT/endMeeting: Not recording, cannot stop.");
       return;
     }
-    console.log("CONTEXT/endMeeting: Calling stopMediaRecorder...");
     stopMediaRecorder();
-    console.log("CONTEXT/endMeeting: stopMediaRecorder() called.");
   };
 
   const transcribeMeetingAudio = async () => {
-    console.log("CONTEXT/transcribeMeetingAudio: Function called.");
     if (!audioBlob) {
       console.error("CONTEXT/transcribeMeetingAudio: No audioBlob found.");
       setError("No recording available to transcribe.");
       return false;
     }
     if (transcription) {
-      console.log(
-        "CONTEXT/transcribeMeetingAudio: Transcription already exists."
-      );
       return true;
     }
 
-    console.log(
-      "CONTEXT/transcribeMeetingAudio: Starting transcription process..."
-    );
     setLoading(true);
     setIsTranscribing(true);
     setError(null);
 
     try {
-      console.log(
-        "CONTEXT/transcribeMeetingAudio: Calling transcribeAudio service..."
-      );
       const transcript = await transcribeAudio(audioBlob);
       if (!transcript && transcript !== "") {
         throw new Error("Transcription result was empty or invalid.");
       }
-      console.log(
-        "CONTEXT/transcribeMeetingAudio: Transcription successful, received text length:",
-        transcript?.length
-      );
+
       setTranscription(transcript);
       setIsTranscribing(false);
       setLoading(false);
@@ -154,7 +131,6 @@ function MeetingProviderComponent({ children }) {
   };
 
   const generateAndSaveMeeting = async (title = "Untitled Meeting") => {
-    console.log("CONTEXT/generateAndSaveMeeting: Function called.");
     if (!audioBlob || !currentUser) {
       console.error(
         "CONTEXT/generateAndSaveMeeting: Missing audioBlob or currentUser."
@@ -168,9 +144,6 @@ function MeetingProviderComponent({ children }) {
       return null;
     }
 
-    console.log(
-      `CONTEXT/generateAndSaveMeeting: Starting process for title: "${title}"`
-    );
     setLoading(true);
     setIsGeneratingMinutes(true);
     setError(null);
@@ -195,18 +168,8 @@ function MeetingProviderComponent({ children }) {
         !generatedMinutesData ||
         (generatedMinutesData && generatedMinutesData.error)
       ) {
-        console.log(
-          "CONTEXT/generateAndSaveMeeting: Step 1 - Generating minutes..."
-        );
         try {
-          console.log(
-            "CONTEXT/generateAndSaveMeeting: Calling generateMinutes service..."
-          );
           generatedMinutesData = await generateMinutes(transcription, title);
-          console.log(
-            "CONTEXT/generateAndSaveMeeting: generateMinutes service returned:",
-            generatedMinutesData
-          );
 
           if (generatedMinutesData && generatedMinutesData.error) {
             console.error(
@@ -222,9 +185,6 @@ function MeetingProviderComponent({ children }) {
             );
           }
           setMinutes(generatedMinutesData);
-          console.log(
-            "CONTEXT/generateAndSaveMeeting: Minutes generation processing finished."
-          );
         } catch (minutesError) {
           console.error(
             "CONTEXT/generateAndSaveMeeting: Failed during minutes generation call:",
@@ -243,24 +203,15 @@ function MeetingProviderComponent({ children }) {
       }
       setIsGeneratingMinutes(false);
 
-      console.log(
-        "CONTEXT/generateAndSaveMeeting: Step 2 - Storing results in Firebase..."
-      );
       const meetingStatus =
         generatedMinutesData && !generatedMinutesData.error
           ? "completed"
           : "completed_partial";
       const hasValidMinutes =
         generatedMinutesData && !generatedMinutesData.error;
-      console.log(
-        `CONTEXT/generateAndSaveMeeting: Determined meetingStatus='${meetingStatus}', hasValidMinutes=${hasValidMinutes}`
-      );
 
-      console.log(
-        "CONTEXT/generateAndSaveMeeting: Creating Firestore document..."
-      );
       const meetingData = {
-        /* ... data ... */ title,
+        title,
         status: meetingStatus,
         creatorName: currentUser.displayName || "Unknown User",
         creatorEmail: currentUser.email,
@@ -273,18 +224,12 @@ function MeetingProviderComponent({ children }) {
       const meetingsRef = collection(db, "meetings");
       const docRef = await addDoc(meetingsRef, meetingData);
       meetingId = docRef.id;
-      console.log(
-        `CONTEXT/generateAndSaveMeeting: Firestore document created: ${meetingId}`
-      );
 
-      console.log("CONTEXT/generateAndSaveMeeting: Uploading audio...");
       const audioPath = `recordings/${currentUser.uid}/${meetingId}/audio.webm`;
       const audioRef = ref(storage, audioPath);
       await uploadBytes(audioRef, audioBlob);
       audioUrl = await getDownloadURL(audioRef);
-      console.log("CONTEXT/generateAndSaveMeeting: Audio uploaded:", audioUrl);
 
-      console.log("CONTEXT/generateAndSaveMeeting: Uploading minutes JSON...");
       const minutesToStore = {
         ...(generatedMinutesData || { error: "Minutes data unavailable." }),
         transcription: transcription,
@@ -297,14 +242,7 @@ function MeetingProviderComponent({ children }) {
       });
       await uploadBytes(minutesRef, jsonBlob);
       const minutesUrl = await getDownloadURL(minutesRef);
-      console.log(
-        "CONTEXT/generateAndSaveMeeting: Minutes JSON uploaded:",
-        minutesUrl
-      );
 
-      console.log(
-        "CONTEXT/generateAndSaveMeeting: Updating Firestore doc with URLs..."
-      );
       const meetingRef = doc(db, "meetings", meetingId);
       await updateDoc(meetingRef, {
         audioUrl,
@@ -312,9 +250,6 @@ function MeetingProviderComponent({ children }) {
         updatedAt: serverTimestamp(),
       });
 
-      console.log(
-        "CONTEXT/generateAndSaveMeeting: Save complete! Navigating..."
-      );
       clearTimeout(processingTimeout);
       setLoading(false);
       navigate(`/meeting/${meetingId}`);
@@ -355,10 +290,6 @@ function MeetingProviderComponent({ children }) {
     setLoading(true);
     setError(null);
     try {
-      console.log(
-        "CONTEXT/loadUserMeetings: Loading for UID:",
-        currentUser.uid
-      );
       const meetingsRef = collection(db, "meetings");
       const q = query(meetingsRef, where("userId", "==", currentUser.uid));
       const querySnapshot = await getDocs(q);
@@ -369,9 +300,7 @@ function MeetingProviderComponent({ children }) {
       userMeetings.sort(
         (a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
       );
-      console.log(
-        `CONTEXT/loadUserMeetings: Found ${userMeetings.length} meetings.`
-      );
+
       setMeetings(userMeetings);
     } catch (err) {
       console.error("CONTEXT/loadUserMeetings: Error:", err);
@@ -388,7 +317,6 @@ function MeetingProviderComponent({ children }) {
     setError(null);
     setCurrentMeeting(null);
     try {
-      console.log(`CONTEXT/loadMeeting: Loading meeting ID: ${meetingId}`);
       const meetingRef = doc(db, "meetings", meetingId);
       const meetingSnap = await getDoc(meetingRef);
       if (
@@ -400,18 +328,12 @@ function MeetingProviderComponent({ children }) {
       const meetingData = { id: meetingSnap.id, ...meetingSnap.data() };
       if (meetingData.minutesUrl) {
         try {
-          console.log(
-            `CONTEXT/loadMeeting: Fetching minutes from: ${meetingData.minutesUrl}`
-          );
           const response = await fetch(meetingData.minutesUrl);
           if (!response.ok)
             throw new Error(
               `Failed to fetch minutes (Status: ${response.status})`
             );
           meetingData.minutesData = await response.json();
-          console.log(
-            "CONTEXT/loadMeeting: Minutes data fetched successfully."
-          );
         } catch (fetchError) {
           console.error(
             "CONTEXT/loadMeeting: Error fetching minutes data:",
@@ -442,9 +364,6 @@ function MeetingProviderComponent({ children }) {
     setLoading(true);
     setError(null);
     try {
-      console.log(
-        `CONTEXT/removeMeeting: Attempting removal for ID: ${meetingId}`
-      );
       const meetingRef = doc(db, "meetings", meetingId);
       const meetingSnap = await getDoc(meetingRef);
       if (
@@ -457,20 +376,17 @@ function MeetingProviderComponent({ children }) {
       const minutesPath = `minutes/${currentUser.uid}/${meetingId}/minutes.json`;
       try {
         await deleteObject(ref(storage, audioPath));
-        console.log("CONTEXT/removeMeeting: Deleted audio.");
       } catch (e) {
         if (e.code !== "storage/object-not-found")
           console.warn("Audio delete failed:", e.message);
       }
       try {
         await deleteObject(ref(storage, minutesPath));
-        console.log("CONTEXT/removeMeeting: Deleted minutes.");
       } catch (e) {
         if (e.code !== "storage/object-not-found")
           console.warn("Minutes delete failed:", e.message);
       }
       await deleteDoc(meetingRef);
-      console.log("CONTEXT/removeMeeting: Deleted Firestore doc.");
       setMeetings((prev) => prev.filter((m) => m.id !== meetingId));
       if (currentMeeting?.id === meetingId) setCurrentMeeting(null);
       return true;

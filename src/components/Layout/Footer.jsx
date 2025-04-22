@@ -25,11 +25,11 @@ import {
   KeyboardArrowUp,
   MailOutline,
   Article,
-  School,
   Public,
   Phone,
 } from "@mui/icons-material";
 import Logo from "../UI/Logo";
+import { Tooltip } from "@mui/material";
 
 const FooterLink = ({ to, children, external = false, delay = 0 }) => {
   const theme = useTheme();
@@ -182,8 +182,6 @@ const WaveDivider = () => {
     </Box>
   );
 };
-
-import { Tooltip } from "@mui/material";
 
 const Footer = () => {
   const theme = useTheme();
@@ -384,9 +382,7 @@ const Footer = () => {
 
                 <Grid item xs={12} sm={6} md={3}>
                   <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Phone
-                      sx={{ mr: 1, color: theme.palette.primary.main }}
-                    />
+                    <Phone sx={{ mr: 1, color: theme.palette.primary.main }} />
                     <Typography variant="body2">
                       <strong>Phone:</strong> +1 (555) 123-4567
                     </Typography>
@@ -406,9 +402,7 @@ const Footer = () => {
 
                 <Grid item xs={12} sm={6} md={3}>
                   <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Public
-                      sx={{ mr: 1, color: theme.palette.primary.main }}
-                    />
+                    <Public sx={{ mr: 1, color: theme.palette.primary.main }} />
                     <Typography variant="body2">
                       <strong>Location:</strong> San Francisco, CA
                     </Typography>
@@ -417,7 +411,6 @@ const Footer = () => {
               </Grid>
             </Box>
           </Grid>
-
         </Grid>
 
         <Divider sx={{ my: 4 }} />
