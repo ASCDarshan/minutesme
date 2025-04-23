@@ -1,7 +1,17 @@
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react"; // Added useCallback, useMemo
 import { Link as RouterLink } from "react-router-dom";
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from "react-speech-recognition"; // Import SpeechRecognition
 import { useMeeting } from "../context/MeetingContext";
 import { AnimatePresence } from "framer-motion";
 import { motion } from "framer-motion";
@@ -20,31 +30,88 @@ import {
   Divider,
   alpha,
   Alert,
+  Grid,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Select, // Added for language selection
+  MenuItem, // Added for language selection
+  FormControl, // Added for language selection
+  InputLabel, // Added for language selection
+  Tooltip, // Added for hints
+  IconButton, // Added for copy/share
+  Snackbar, // Added for copy feedback
 } from "@mui/material";
 import {
   ArrowBack,
   Mic as MicIcon,
   Info as InfoIcon,
   Notes,
+  TipsAndUpdates as TipsIcon,
+  LooksOne,
+  LooksTwo,
+  Looks3,
+  Looks4,
+  Language as LanguageIcon,
+  ContentCopy as CopyIcon,
+  Share as ShareIcon,
+  MicOff as MicOffIcon,
+  HighlightAlt as HighlightIcon,
+  PlayArrow as PlayIcon,
 } from "@mui/icons-material";
 import ProcessingUI from "../components/NewMeeting/ProcessingUI";
 import RecordButton from "../components/NewMeeting/RecordButton";
 import SoundWave from "../components/NewMeeting/SoundWave";
 import Timer from "../components/NewMeeting/Timer";
 
+const HighlightKeywords = React.memo(({ text, keywords, highlightColor }) => {
+  if (!keywords?.length || !text) {
+    return text;
+  }
+  const escapedKeywords = keywords.map((kw) =>
+    kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  );
+  const regex = new RegExp(`\\b(${escapedKeywords.join("|")})\\b`, "gi");
+
+  const parts = text.split(regex);
+
+  return (
+    <>
+      {parts.map((part, index) =>
+        regex.test(part) ? (
+          <Box
+            component="span"
+            key={index}
+            sx={{
+              backgroundColor: highlightColor,
+              borderRadius: "3px",
+              p: "0.5px 2px",
+            }}
+          >
+            {part}
+          </Box>
+        ) : (
+          part
+        )
+      )}
+    </>
+  );
+});
+
 const NewMeeting = () => {
   const {
-    isRecording,
+    isRecording: contextIsRecording,
     mediaRecorderStatus,
     startMeeting,
     endMeeting,
     transcribeMeetingAudio,
     generateAndSaveMeeting,
-    transcription,
+    transcription: finalTranscription,
     isTranscribing,
     isGeneratingMinutes,
     loading,
-    error,
+    error: contextError,
     audioBlob,
   } = useMeeting();
 
@@ -56,9 +123,56 @@ const NewMeeting = () => {
   const waveFrequencyRef = useRef(1.5);
   const waveAmplitudeRef = useRef(20);
   const hasTransitionedToStep1 = useRef(false);
+  const liveTranscriptEndRef = useRef(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [recordingStopped, setRecordingStopped] = useState(false);
+
+  const [currentLanguage, setCurrentLanguage] = useState("en-US");
+  const {
+    transcript,
+    interimTranscript,
+    finalTranscript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition,
+    isMicrophoneAvailable,
+  } = useSpeechRecognition();
+
+  const keywordsToHighlight = useMemo(
+    () => [
+      "agenda",
+      "next steps",
+      "action plan",
+      "action item",
+      "goals",
+      "summary",
+      "summarize",
+      "participants",
+      "decision",
+      "minutes",
+      "deadline",
+      "follow up",
+      "issue",
+      "problem",
+      "solution",
+      "proposal",
+      "vote",
+      "assign",
+      "task",
+      "milestone",
+      "blocker",
+    ],
+    []
+  );
+
+  const highlightColor = alpha(theme.palette.secondary.main, 0.3);
+
+  const displayedTranscript =
+    finalTranscript + (interimTranscript ? " " + interimTranscript : "");
 
   useEffect(() => {
-    if (isRecording) {
+    if (contextIsRecording) {
       timerRef.current = setInterval(() => {
         setRecordingTime((prev) => prev + 1);
       }, 1000);
@@ -66,68 +180,152 @@ const NewMeeting = () => {
       clearInterval(timerRef.current);
     }
     return () => clearInterval(timerRef.current);
-  }, [isRecording]);
-
-  const toggleRecording = () => {
-
-    if (!isRecording && mediaRecorderStatus !== "acquiring_media") {
-      setRecordingTime(0);
-      hasTransitionedToStep1.current = false;
-      startMeeting();
-    } else if (isRecording) {
-      endMeeting();
-
-    }
-  };
+  }, [contextIsRecording]);
 
   useEffect(() => {
+    if (contextIsRecording && !listening && browserSupportsSpeechRecognition) {
+      resetTranscript();
+      SpeechRecognition.startListening({
+        continuous: true,
+        language: currentLanguage,
+      });
+    } else if (!contextIsRecording && listening) {
+      SpeechRecognition.stopListening();
+    }
+    return () => {
+      if (listening) {
+        SpeechRecognition.stopListening();
+      }
+    };
+  }, [
+    contextIsRecording,
+    listening,
+    browserSupportsSpeechRecognition,
+    currentLanguage,
+    resetTranscript,
+  ]);
 
-
+  // Modified this effect to not auto-transition to step 1
+  useEffect(() => {
     if (
       mediaRecorderStatus === "stopped" &&
       activeStep === 0 &&
-      !hasTransitionedToStep1.current
+      !hasTransitionedToStep1.current &&
+      audioBlob &&
+      false // Disabled auto-transition
     ) {
-
       setActiveStep(1);
       hasTransitionedToStep1.current = true;
+      if (listening) {
+        SpeechRecognition.stopListening();
+      }
     }
-
-    if (mediaRecorderStatus === "idle" && activeStep !== 0) {
-      console.log(
-        "NewMeeting/Status Effect: Status is idle, resetting activeStep to 0"
-      );
-
-    }
-  }, [mediaRecorderStatus]);
+  }, [mediaRecorderStatus, activeStep, audioBlob, listening]);
 
   useEffect(() => {
-    console.log(
-      `NewMeeting/Transcription Trigger Check: Step=${activeStep}, Blob=${!!audioBlob}, Transcr=${!!transcription}, isTranscribing=${isTranscribing}, Error='${error}'`
-    );
     const transcriptionErrorExists =
-      error && error.startsWith("Transcription failed");
+      contextError && contextError.startsWith("Transcription failed");
 
     if (
       activeStep === 1 &&
       audioBlob &&
-      !transcription &&
+      !finalTranscription &&
       !isTranscribing &&
       !transcriptionErrorExists
     ) {
-      console.log(
-        "NewMeeting/Transcription Trigger: Conditions met. Calling transcribeMeetingAudio..."
-      );
       transcribeMeetingAudio();
     }
   }, [
     activeStep,
     audioBlob,
-    transcription,
+    finalTranscription,
     isTranscribing,
-    error,
+    contextError,
     transcribeMeetingAudio,
   ]);
+
+  useEffect(() => {
+    if (activeStep === 0 && liveTranscriptEndRef.current) {
+      liveTranscriptEndRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }
+  }, [displayedTranscript, activeStep]);
+
+  const toggleRecording = useCallback(() => {
+    if (!contextIsRecording && mediaRecorderStatus !== "acquiring_media") {
+      setRecordingTime(0);
+      hasTransitionedToStep1.current = false;
+      setActiveStep(0);
+      setRecordingStopped(false);
+      startMeeting();
+    } else if (contextIsRecording) {
+      endMeeting();
+      setRecordingStopped(true);
+    }
+  }, [contextIsRecording, mediaRecorderStatus, startMeeting, endMeeting]);
+
+  const handleLanguageChange = (event) => {
+    const newLang = event.target.value;
+    setCurrentLanguage(newLang);
+    if (listening) {
+      SpeechRecognition.stopListening().then(() => {
+        resetTranscript();
+        SpeechRecognition.startListening({
+          continuous: true,
+          language: newLang,
+        });
+      });
+    }
+  };
+
+  const handleCopy = useCallback(async () => {
+    if (!transcript) {
+      setSnackbarMessage("Nothing to copy!");
+      setSnackbarOpen(true);
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(transcript);
+      setSnackbarMessage("Transcript copied to clipboard!");
+      setSnackbarOpen(true);
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+      setSnackbarMessage("Failed to copy transcript.");
+      setSnackbarOpen(true);
+    }
+  }, [transcript]);
+
+  const handleShare = useCallback(async () => {
+    if (!transcript) {
+      setSnackbarMessage("Nothing to share!");
+      setSnackbarOpen(true);
+      return;
+    }
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Meeting Transcript",
+          text: transcript,
+        });
+        setSnackbarMessage("Transcript shared successfully!");
+        setSnackbarOpen(true);
+      } catch (err) {
+        console.error("Error sharing:", err);
+        if (err.name !== "AbortError") {
+          setSnackbarMessage("Failed to share transcript.");
+          setSnackbarOpen(true);
+        }
+      }
+    } else {
+      console.warn("Web Share API not supported.");
+      setSnackbarMessage(
+        "Web Share not supported by your browser. Try copying instead."
+      );
+      setSnackbarOpen(true);
+    }
+  }, [transcript]);
 
   const handleGenerateAndSave = async () => {
     if (!meetingTitle.trim()) {
@@ -137,18 +335,59 @@ const NewMeeting = () => {
     await generateAndSaveMeeting(meetingTitle);
   };
 
+  const handleProcessRecording = () => {
+    if (audioBlob) {
+      setActiveStep(1);
+      hasTransitionedToStep1.current = true;
+      if (listening) {
+        SpeechRecognition.stopListening();
+      }
+    } else {
+      setSnackbarMessage("No recording available to process.");
+      setSnackbarOpen(true);
+    }
+  };
+
+  const handleRecordAgain = () => {
+    setActiveStep(0);
+    setRecordingTime(0);
+    resetTranscript();
+    setRecordingStopped(false);
+    hasTransitionedToStep1.current = false;
+  };
+
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbarOpen(false);
+  };
+
   const isProcessingMinutes = isGeneratingMinutes || loading;
 
   const processingError =
-    error &&
-      !error.startsWith("Transcription failed") &&
-      !error.startsWith("Recording Error")
-      ? error
+    contextError &&
+      !contextError.startsWith("Transcription failed") &&
+      !contextError.startsWith("Recording Error")
+      ? contextError
       : null;
 
   const recordingError =
-    error &&
-    (mediaRecorderStatus === "error" || error.startsWith("Recording Error"));
+    contextError &&
+    (mediaRecorderStatus === "error" ||
+      contextError.startsWith("Recording Error"));
+
+  const finalTranscriptionError =
+    contextError && contextError.startsWith("Transcription failed");
+
+  const cardElevation = 8;
+  const cardBorderRadius = 4;
+  const cardBoxShadow = "0 15px 50px rgba(0,0,0,0.08)";
+
+  const speechRecognitionSupported = useMemo(
+    () => browserSupportsSpeechRecognition,
+    [browserSupportsSpeechRecognition]
+  );
 
   return (
     <Box
@@ -193,16 +432,7 @@ const NewMeeting = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <Typography
-              variant="h4"
-              component="h1"
-              fontWeight={700}
-              sx={{
-                background: `linear-gradient(135deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 100%)`,
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
+            <Typography variant="h4" component="h1" fontWeight={700}>
               {activeStep === 0 ? "Record Your Meeting" : "Process & Review"}
             </Typography>
           </motion.div>
@@ -213,7 +443,7 @@ const NewMeeting = () => {
           >
             <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
               {activeStep === 0
-                ? "Click the microphone to start recording"
+                ? "Select language, follow instructions, and start recording"
                 : "Review transcription and generate minutes"}
             </Typography>
           </motion.div>
@@ -223,27 +453,14 @@ const NewMeeting = () => {
           <Stepper
             activeStep={activeStep}
             alternativeLabel
-            sx={{
-              "& .MuiStepConnector-line": {
-                borderTopWidth: 3,
-                borderRadius: 1,
-              },
-              "& .MuiStepConnector-root.Mui-active .MuiStepConnector-line": {
-                borderColor: theme.palette.primary.main,
-              },
-              "& .MuiStepConnector-root.Mui-completed .MuiStepConnector-line": {
-                borderColor: theme.palette.primary.main,
-              },
-              "& .MuiStepLabel-label.Mui-active": {
-                color: theme.palette.primary.main,
-                fontWeight: 600,
-              },
-            }}
+            sx={{ maxWidth: 700, mx: "auto" }}
           >
-            <Step>
+            <Step key="Record">
               <StepLabel
+                StepIconComponent={MicIcon}
                 StepIconProps={{
                   sx: {
+                    fontSize: 28,
                     "&.Mui-active": { color: theme.palette.primary.main },
                     "&.Mui-completed": { color: theme.palette.primary.main },
                   },
@@ -252,10 +469,12 @@ const NewMeeting = () => {
                 Record
               </StepLabel>
             </Step>
-            <Step>
+            <Step key="Process">
               <StepLabel
+                StepIconComponent={Notes}
                 StepIconProps={{
                   sx: {
+                    fontSize: 28,
                     "&.Mui-active": { color: theme.palette.primary.main },
                     "&.Mui-completed": { color: theme.palette.primary.main },
                   },
@@ -271,93 +490,97 @@ const NewMeeting = () => {
           <AnimatePresence mode="wait">
             {activeStep === 0 && (
               <motion.div
-                key="recorder"
-                initial={{ opacity: 0, scale: 0.9 }}
+                key="step0-container"
+                initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
+                exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.5 }}
-                style={{ width: "100%", maxWidth: 600 }}
+                style={{ width: "100%" }}
               >
-                <Card
-                  elevation={8}
-                  sx={{
-                    p: 4,
-                    borderRadius: 4,
-                    boxShadow: "0 15px 50px rgba(0,0,0,0.08)",
-                    position: "relative",
-                    overflow: "hidden",
-                  }}
+                <Grid
+                  container
+                  spacing={4}
+                  justifyContent="center"
+                  alignItems="stretch"
+                  display={"flex"}
                 >
                   <Box
-                    sx={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      opacity: 0.03,
-                      background: `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.main} 50%, ${theme.palette.secondary.main} 100%)`,
-                      zIndex: 0,
-                    }}
-                  />
-                  <Box sx={{ position: "relative", zIndex: 1 }}>
-                    <Box
+                    display="flex"
+                    gap={2}
+                    flexWrap="wrap"
+                    justifyContent="center"
+                  >
+                    <Card
+                      elevation={cardElevation}
                       sx={{
-                        mb: 4,
-                        height: 180,
+                        p: { xs: 1, sm: 1 },
+                        borderRadius: cardBorderRadius,
+                        boxShadow: cardBoxShadow,
+                        height: "100%",
                         display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        position: "relative",
-                        overflow: "hidden",
-                        borderRadius: 3,
-                        border: "1px solid",
-                        borderColor: theme.palette.divider,
-                        bgcolor: alpha(theme.palette.background.paper, 0.5),
+                        flexDirection: "column",
+                        width: 380,
                       }}
                     >
-                      <SoundWave
-                        isRecording={isRecording}
-                        frequency={waveFrequencyRef.current}
-                        amplitude={waveAmplitudeRef.current}
-                      />
-                    </Box>
-                    <Timer seconds={recordingTime} />
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        minHeight: 140,
-                      }}
-                    >
-                      <Box sx={{ textAlign: "center" }}>
-                        <Box sx={{ mb: 2 }}>
-                          <RecordButton
-                            isRecording={isRecording}
-                            onClick={toggleRecording}
+                      <CardContent sx={{ flexGrow: 1 }}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", mb: 2 }}
+                        >
+                          <TipsIcon
+                            sx={{
+                              mr: 1.5,
+                              color: theme.palette.info.main,
+                              fontSize: 24,
+                            }}
                           />
+                          <Typography
+                            variant="h6"
+                            component="h3"
+                            fontWeight={600}
+                          >
+                            {" "}
+                            Recording Instructions{" "}
+                          </Typography>
                         </Box>
                         <Typography
                           variant="body2"
                           color="text.secondary"
-                          sx={{ fontWeight: 500 }}
+                          sx={{ mb: 2 }}
                         >
-                          {isRecording
-                            ? "Tap to stop recording"
-                            : "Tap to start recording"}
+                          {" "}
+                          Follow these steps for better meeting summaries:{" "}
                         </Typography>
-                        {mediaRecorderStatus === "acquiring_media" && (
-                          <Typography variant="caption" color="text.secondary">
-                            Requesting microphone...
-                          </Typography>
-                        )}
-                      </Box>
-                    </Box>
-                    {!isRecording && recordingTime === 0 && (
-                      <Box sx={{ mt: 4 }}>
-                        {" "}
-                        <Divider sx={{ my: 2 }} />{" "}
+                        <List dense>
+                          <ListItem>
+                            <ListItemIcon sx={{ minWidth: 32 }}>
+                              {" "}
+                              <LooksOne fontSize="small" color="primary" />{" "}
+                            </ListItemIcon>
+                            <ListItemText primary="Start by stating the names of all participants." />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemIcon sx={{ minWidth: 32 }}>
+                              {" "}
+                              <LooksTwo fontSize="small" color="primary" />{" "}
+                            </ListItemIcon>
+                            <ListItemText primary='Clearly state the agenda using phrases like "Today\s agenda is..." or "The agenda for the meeting is..."' />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemIcon sx={{ minWidth: 32 }}>
+                              {" "}
+                              <Looks3 fontSize="small" color="primary" />{" "}
+                            </ListItemIcon>
+                            <ListItemText primary='Mention keywords like "Action Plan", "Goals", or "Next Steps" when discussing actionable items.' />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemIcon sx={{ minWidth: 32 }}>
+                              {" "}
+                              <Looks4 fontSize="small" color="primary" />{" "}
+                            </ListItemIcon>
+                            <ListItemText primary='Use phrases like "To summarize..." when concluding the meeting.' />
+                          </ListItem>
+                        </List>
+                        <Divider sx={{ my: 2 }} />
                         <Box
                           sx={{
                             display: "flex",
@@ -365,7 +588,6 @@ const NewMeeting = () => {
                             mt: 2,
                           }}
                         >
-                          {" "}
                           <InfoIcon
                             sx={{
                               mr: 1.5,
@@ -373,48 +595,346 @@ const NewMeeting = () => {
                               mt: 0.5,
                               fontSize: 20,
                             }}
-                          />{" "}
+                          />
                           <Box>
-                            {" "}
                             <Typography
                               variant="subtitle2"
                               fontWeight={600}
                               gutterBottom
                             >
                               {" "}
-                              Tips for better quality{" "}
-                            </Typography>{" "}
+                              General Tip{" "}
+                            </Typography>
                             <Typography variant="body2" color="text.secondary">
                               {" "}
-                              Minimize background noise and speak clearly.{" "}
-                            </Typography>{" "}
-                          </Box>{" "}
-                        </Box>{" "}
-                      </Box>
-                    )}
-                    {recordingError && (
-                      <Alert severity="error" sx={{ mt: 2 }}>
-                        {recordingError}
-                      </Alert>
-                    )}
+                              Minimize background noise and ensure speakers talk
+                              clearly near the microphone.{" "}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                    <Card
+                      elevation={cardElevation}
+                      sx={{
+                        p: { xs: 1, sm: 1 },
+                        borderRadius: cardBorderRadius,
+                        boxShadow: cardBoxShadow,
+                        position: "relative",
+                        overflow: "hidden",
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        width: 360,
+                      }}
+                    >
+                      <Box sx={{ position: "absolute", zIndex: 0 }} />
+                      <CardContent
+                        sx={{
+                          position: "relative",
+                          zIndex: 1,
+                          flexGrow: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                        }}
+                      >
+                        <Typography
+                          variant="h6"
+                          fontWeight={600}
+                          gutterBottom
+                          sx={{ textAlign: "center", mb: 2 }}
+                        >
+                          Recorder
+                        </Typography>
+                        <Box
+                          sx={{
+                            mb: 2,
+                            height: 120,
+                            bgcolor: alpha(theme.palette.background.paper, 0.5),
+                          }}
+                        >
+                          <SoundWave
+                            isRecording={contextIsRecording}
+                            frequency={waveFrequencyRef.current}
+                            amplitude={waveAmplitudeRef.current}
+                          />
+                        </Box>
+                        <Timer
+                          seconds={recordingTime}
+                          sx={{ mb: 2, textAlign: "center" }}
+                        />
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            flexDirection: "column",
+                            mt: "auto",
+                            gap: 2,
+                          }}
+                        >
+                          <Box sx={{ textAlign: "center" }}>
+                            <Box sx={{ mb: 1 }}>
+                              <RecordButton
+                                isRecording={contextIsRecording}
+                                onClick={toggleRecording}
+                                disabled={
+                                  mediaRecorderStatus === "acquiring_media" ||
+                                  !isMicrophoneAvailable ||
+                                  !speechRecognitionSupported
+                                }
+                              />
+                            </Box>
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{ fontWeight: 500, minHeight: "1.5em" }}
+                            >
+                              {mediaRecorderStatus === "acquiring_media"
+                                ? "Requesting microphone..."
+                                : !speechRecognitionSupported
+                                  ? "Speech recognition not supported"
+                                  : !isMicrophoneAvailable
+                                    ? "Microphone unavailable"
+                                    : contextIsRecording
+                                      ? "Tap to stop recording"
+                                      : "Tap to start recording"}
+                            </Typography>
+                          </Box>
+
+                          {/* Process Recording Button - Only visible after recording is stopped */}
+                          {recordingStopped && audioBlob && !contextIsRecording && (
+                            <Button
+                              variant="contained"
+                              color="secondary"
+                              startIcon={<PlayIcon />}
+                              onClick={handleProcessRecording}
+                              sx={{
+                                borderRadius: 28,
+                                px: 3,
+                                py: 1,
+                                fontWeight: 600,
+                                boxShadow: `0 4px 14px ${alpha(
+                                  theme.palette.secondary.main,
+                                  0.4
+                                )}`,
+                              }}
+                            >
+                              Process Recording
+                            </Button>
+                          )}
+                        </Box>
+                        {recordingError && (
+                          <Alert severity="error" sx={{ mt: 2 }}>
+                            {typeof recordingError === "string"
+                              ? recordingError
+                              : "An unknown recording error occurred."}
+                          </Alert>
+                        )}
+                      </CardContent>
+                    </Card>
+                    <Card
+                      elevation={cardElevation}
+                      sx={{
+                        p: { xs: 1, sm: 1 },
+                        borderRadius: cardBorderRadius,
+                        boxShadow: cardBoxShadow,
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        width: 370,
+                      }}
+                    >
+                      <CardContent
+                        sx={{
+                          flexGrow: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            mb: 2,
+                            flexWrap: "wrap",
+                            gap: 1,
+                          }}
+                        >
+                          <Box sx={{ display: "flex", alignItems: "center" }}>
+                            <HighlightIcon
+                              sx={{
+                                mr: 1.5,
+                                color: "secondary.main",
+                                fontSize: 24,
+                              }}
+                            />
+                            <Typography
+                              variant="h6"
+                              component="h3"
+                              fontWeight={600}
+                            >
+                              {" "}
+                              Live Transcript{" "}
+                            </Typography>
+                          </Box>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            <FormControl
+                              size="small"
+                              sx={{ minWidth: 120 }}
+                              disabled={listening}
+                            >
+                              <InputLabel id="language-select-label">
+                                Language
+                              </InputLabel>
+                              <Select
+                                labelId="language-select-label"
+                                id="language-select"
+                                value={currentLanguage}
+                                label="Language"
+                                onChange={handleLanguageChange}
+                                startAdornment={
+                                  <LanguageIcon
+                                    sx={{ mr: 0.5, color: "action.active" }}
+                                  />
+                                }
+                                disabled={listening}
+                              >
+                                <MenuItem value="en-US">English (US)</MenuItem>
+                                <MenuItem value="en-GB">English (UK)</MenuItem>
+                                <MenuItem value="hi-IN">Hindi (India)</MenuItem>
+                                <MenuItem value="gu-IN">
+                                  Gujarati (India)
+                                </MenuItem>
+                              </Select>
+                            </FormControl>
+                            <Tooltip title="Copy Transcript">
+                              <span>
+                                <IconButton
+                                  onClick={handleCopy}
+                                  disabled={!transcript || listening}
+                                  size="small"
+                                >
+                                  <CopyIcon />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                            <Tooltip title="Share Transcript">
+                              <span>
+                                <IconButton
+                                  onClick={handleShare}
+                                  disabled={
+                                    !transcript || listening || !navigator.share
+                                  }
+                                  size="small"
+                                >
+                                  <ShareIcon />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                          </Box>
+                        </Box>
+
+                        <Box
+                          sx={{
+                            flexGrow: 1,
+                            minHeight: 150,
+                            maxHeight: 300,
+                            overflowY: "auto",
+                            p: 2,
+                            background: alpha(theme.palette.grey[500], 0.05),
+                            borderRadius: 2,
+                            border: `1px solid ${theme.palette.divider}`,
+                            fontFamily: "monospace",
+                            whiteSpace: "pre-wrap",
+                            wordBreak: "break-word",
+                            fontSize: "0.875rem",
+                          }}
+                        >
+                          {!speechRecognitionSupported ? (
+                            <Alert severity="warning" icon={<MicOffIcon />}>
+                              {" "}
+                              Speech recognition is not supported by your
+                              browser. Try Chrome or Edge.{" "}
+                            </Alert>
+                          ) : !isMicrophoneAvailable ? (
+                            <Alert severity="error" icon={<MicOffIcon />}>
+                              {" "}
+                              Microphone access denied or microphone not found.
+                              Please check browser permissions and hardware.{" "}
+                            </Alert>
+                          ) : listening ? (
+                            <>
+                              <HighlightKeywords
+                                text={displayedTranscript}
+                                keywords={keywordsToHighlight}
+                                highlightColor={highlightColor}
+                              />
+                              <Box
+                                component="span"
+                                sx={{
+                                  animation: "blinker 1s linear infinite",
+                                  ml: "2px",
+                                  borderLeft: `2px solid ${theme.palette.text.primary}`,
+                                }}
+                              >
+                                {" "}
+                              </Box>
+                              <style>{` @keyframes blinker { 50% { opacity: 0; } } `}</style>
+                            </>
+                          ) : transcript ? (
+                            <HighlightKeywords
+                              text={transcript}
+                              keywords={keywordsToHighlight}
+                              highlightColor={highlightColor}
+                            />
+                          ) : contextIsRecording ? (
+                            <Typography
+                              color="text.secondary"
+                              sx={{ fontStyle: "italic" }}
+                            >
+                              {" "}
+                              Listening... Speak clearly.{" "}
+                            </Typography>
+                          ) : (
+                            <Typography
+                              color="text.secondary"
+                              sx={{ fontStyle: "italic" }}
+                            >
+                              {" "}
+                              Click the record button above to start live
+                              transcription.{" "}
+                            </Typography>
+                          )}
+                          <div ref={liveTranscriptEndRef} />
+                        </Box>
+                      </CardContent>
+                    </Card>
                   </Box>
-                </Card>
+                </Grid>
               </motion.div>
             )}
 
             {activeStep === 1 && (
               <motion.div
                 key="processor"
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
+                exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.5 }}
                 style={{ width: "100%", maxWidth: 700 }}
               >
                 <Box>
                   <Card
                     sx={{
-                      borderRadius: 4,
+                      borderRadius: cardBorderRadius,
                       mb: 4,
                       boxShadow: "0 10px 40px rgba(0,0,0,0.07)",
                     }}
@@ -433,29 +953,33 @@ const NewMeeting = () => {
                           fontWeight={600}
                           sx={{ display: "flex", alignItems: "center" }}
                         >
-                          <Notes sx={{ mr: 1, color: "primary.main" }} />{" "}
+                          <Notes sx={{ mr: 1, color: "primary.main" }} /> Final
                           Transcription Result
                         </Typography>
                       </Box>
-
                       {isTranscribing && (
                         <Box sx={{ textAlign: "center", py: 4 }}>
                           <CircularProgress />
                           <Typography sx={{ mt: 1 }} color="text.secondary">
-                            Transcribing audio...
+                            {" "}
+                            Transcribing audio... Please wait.{" "}
                           </Typography>
                         </Box>
                       )}
-
-                      {error &&
-                        !isTranscribing &&
-                        error.startsWith("Transcription failed") && (
-                          <Alert severity="error" sx={{ mt: 2 }}>
-                            {error}
-                          </Alert>
-                        )}
-
-                      {transcription && !isTranscribing && (
+                      {finalTranscriptionError && !isTranscribing && (
+                        <Alert severity="error" sx={{ mt: 2 }}>
+                          {contextError}
+                          <Button
+                            size="small"
+                            onClick={transcribeMeetingAudio}
+                            sx={{ ml: 2 }}
+                          >
+                            {" "}
+                            Retry{" "}
+                          </Button>
+                        </Alert>
+                      )}
+                      {finalTranscription && !isTranscribing && (
                         <Box
                           sx={{
                             maxHeight: 300,
@@ -463,6 +987,7 @@ const NewMeeting = () => {
                             p: 2,
                             background: alpha(theme.palette.grey[500], 0.05),
                             borderRadius: 2,
+                            border: `1px solid ${theme.palette.divider}`,
                           }}
                         >
                           <Typography
@@ -470,38 +995,38 @@ const NewMeeting = () => {
                             sx={{
                               whiteSpace: "pre-wrap",
                               fontFamily: "monospace",
+                              wordBreak: "break-word",
                             }}
                           >
-                            {transcription}
+                            {finalTranscription}
                           </Typography>
                         </Box>
                       )}
-
-                      {!transcription &&
+                      {!finalTranscription &&
                         !isTranscribing &&
-                        !error &&
-                        audioBlob && (
+                        audioBlob &&
+                        !finalTranscriptionError && (
                           <Typography
                             sx={{ textAlign: "center", py: 4 }}
                             color="text.secondary"
                           >
-                            Waiting for transcription...
+                            {" "}
+                            Processing audio for final transcription...{" "}
                           </Typography>
                         )}
                       {!audioBlob && !isTranscribing && (
-                        <Typography
-                          sx={{ textAlign: "center", py: 4 }}
-                          color="text.secondary"
-                        >
-                          No audio recording found. Please record again.
-                        </Typography>
+                        <Alert severity="warning" sx={{ mt: 2 }}>
+                          {" "}
+                          No audio recording found for final processing. Please
+                          record again.{" "}
+                        </Alert>
                       )}
                     </CardContent>
                   </Card>
 
-                  {transcription &&
+                  {finalTranscription &&
                     !isTranscribing &&
-                    !error?.startsWith("Transcription failed") && (
+                    !finalTranscriptionError && (
                       <ProcessingUI
                         meetingTitle={meetingTitle}
                         setMeetingTitle={setMeetingTitle}
@@ -518,8 +1043,10 @@ const NewMeeting = () => {
                         setRecordingTime(0);
                       }}
                       color="inherit"
+                      variant="outlined"
                       startIcon={<MicIcon />}
                       disabled={isTranscribing || isProcessingMinutes}
+                      sx={{ borderRadius: 20 }}
                     >
                       Record Again
                     </Button>
@@ -530,6 +1057,14 @@ const NewMeeting = () => {
           </AnimatePresence>
         </Box>
       </Container>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={handleSnackbarClose}
+        message={snackbarMessage}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      />
     </Box>
   );
 };

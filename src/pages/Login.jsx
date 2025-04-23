@@ -503,13 +503,17 @@ const Login = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 0.8 }}
+            style={{
+              display: "flex",
+              justifyContent: "flex-start",
+              paddingRight: "3rem",
+            }}
           >
             <Box
               sx={{
                 position: "relative",
                 width: 120,
                 height: 120,
-                mx: "auto",
                 mt: 4,
                 opacity: 0.7,
               }}
@@ -571,9 +575,7 @@ const Login = () => {
               </motion.div>
             </Box>
           </motion.div>
-
         </Box>
-
       </Container>
     </Box>
   );
