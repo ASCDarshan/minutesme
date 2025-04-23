@@ -20,7 +20,6 @@ import {
   ListItemIcon,
   Divider,
   Container,
-  Badge,
   Tooltip,
   alpha,
   useTheme,
@@ -29,203 +28,15 @@ import {
 } from "@mui/material";
 import {
   Menu as MenuIcon,
-  NotificationsOutlined,
   Settings,
   Logout,
   AccountCircle,
   Dashboard,
   MicNone,
   Person,
-  ChevronRight,
   HelpOutline,
 } from "@mui/icons-material";
 import Logo from "../UI/Logo";
-
-const NotificationBadge = () => {
-  const theme = useTheme();
-  const [hasNotifications, setHasNotifications] = useState(true);
-  const [notificationCount, setNotificationCount] = useState(3);
-  const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
-
-  const notifications = [
-    {
-      id: 1,
-      message: "Your meeting 'Product Review' has been transcribed",
-      time: "10 minutes ago",
-      read: false,
-    },
-    {
-      id: 2,
-      message: "You have 15 minutes of recording time left this month",
-      time: "2 hours ago",
-      read: false,
-    },
-    {
-      id: 3,
-      message: "Meeting minutes for 'Team Sync' are ready",
-      time: "Yesterday",
-      read: true,
-    },
-  ];
-
-  const handleNotificationClick = (event) => {
-    setNotificationAnchorEl(event.currentTarget);
-  };
-
-  const handleNotificationClose = () => {
-    setNotificationAnchorEl(null);
-  };
-
-  const handleMarkAllRead = () => {
-    setHasNotifications(false);
-    setNotificationCount(0);
-    handleNotificationClose();
-  };
-
-  return (
-    <>
-      <Tooltip title="Notifications">
-        <IconButton
-          color="inherit"
-          onClick={handleNotificationClick}
-          sx={{
-            position: "relative",
-            "&::after": hasNotifications
-              ? {
-                content: '""',
-                position: "absolute",
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                backgroundColor: theme.palette.error.main,
-                top: 10,
-                right: 10,
-                boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
-              }
-              : {},
-          }}
-        >
-          <Badge
-            color="error"
-            badgeContent={notificationCount}
-            invisible={!hasNotifications}
-          >
-            <NotificationsOutlined />
-          </Badge>
-        </IconButton>
-      </Tooltip>
-
-      <Menu
-        anchorEl={notificationAnchorEl}
-        open={Boolean(notificationAnchorEl)}
-        onClose={handleNotificationClose}
-        PaperProps={{
-          elevation: 3,
-          sx: {
-            mt: 1.5,
-            width: 360,
-            maxWidth: "100%",
-            maxHeight: "calc(100vh - 100px)",
-            borderRadius: 2,
-            overflow: "hidden",
-          },
-        }}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-      >
-        <Box
-          sx={{
-            px: 2,
-            py: 2,
-            bgcolor: "background.paper",
-            borderBottom: "1px solid",
-            borderColor: "divider",
-          }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Typography variant="subtitle1" fontWeight={600}>
-              Notifications
-            </Typography>
-
-            <Button size="small" onClick={handleMarkAllRead}>
-              Mark all as read
-            </Button>
-          </Box>
-        </Box>
-
-        <List sx={{ p: 0, maxHeight: 320, overflow: "auto" }}>
-          {notifications.map((notification) => (
-            <ListItem
-              key={notification.id}
-              sx={{
-                px: 2,
-                py: 1.5,
-                bgcolor: notification.read
-                  ? "transparent"
-                  : alpha(theme.palette.primary.main, 0.05),
-                borderLeft: notification.read
-                  ? "none"
-                  : `3px solid ${theme.palette.primary.main}`,
-                "&:hover": {
-                  bgcolor: alpha(theme.palette.primary.main, 0.08),
-                },
-              }}
-              button={true}
-            >
-              <ListItemText
-                primary={notification.message}
-                secondary={notification.time}
-                primaryTypographyProps={{
-                  variant: "body2",
-                  fontWeight: notification.read ? 400 : 600,
-                  color: notification.read ? "text.secondary" : "text.primary",
-                }}
-                secondaryTypographyProps={{
-                  variant: "caption",
-                }}
-              />
-              <ChevronRight fontSize="small" color="action" />
-            </ListItem>
-          ))}
-
-          {notifications.length === 0 && (
-            <ListItem sx={{ py: 6 }}>
-              <ListItemText
-                primary="No notifications"
-                secondary="You're all caught up!"
-                sx={{ textAlign: "center" }}
-              />
-            </ListItem>
-          )}
-        </List>
-
-        <Box
-          sx={{
-            p: 1.5,
-            borderTop: "1px solid",
-            borderColor: "divider",
-            textAlign: "center",
-          }}
-        >
-          <Button
-            size="small"
-            fullWidth
-            onClick={handleNotificationClose}
-            sx={{ borderRadius: 2 }}
-          >
-            View all notifications
-          </Button>
-        </Box>
-      </Menu>
-    </>
-  );
-};
 
 const ElevatedAppBar = ({ children }) => {
   const trigger = useScrollTrigger({
@@ -440,8 +251,6 @@ const Header = () => {
               <ListItemText primary="Sign Out" />
             </ListItem>
           </List>
-
-
         </>
       ) : (
         <Box
@@ -597,16 +406,6 @@ const Header = () => {
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.5, delay: 0.4 }}
-                    >
-                      <NotificationBadge />
-                    </motion.div>
-
-
-
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.5, delay: 0.6 }}
                     >
                       <Tooltip title="Account">
@@ -725,9 +524,7 @@ const Header = () => {
                     transition={{ duration: 0.5 }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                  >
-
-                  </motion.div>
+                  ></motion.div>
                 )}
               </Box>
             </Toolbar>
