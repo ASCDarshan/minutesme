@@ -1,3 +1,4 @@
+/* eslint-disable no-constant-condition */
 
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
@@ -35,13 +36,13 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Select, // Added for language selection
-  MenuItem, // Added for language selection
-  FormControl, // Added for language selection
-  InputLabel, // Added for language selection
-  Tooltip, // Added for hints
-  IconButton, // Added for copy/share
-  Snackbar, // Added for copy feedback
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Tooltip,
+  IconButton,
+  Snackbar,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -205,14 +206,13 @@ const NewMeeting = () => {
     resetTranscript,
   ]);
 
-  // Modified this effect to not auto-transition to step 1
   useEffect(() => {
     if (
       mediaRecorderStatus === "stopped" &&
       activeStep === 0 &&
       !hasTransitionedToStep1.current &&
       audioBlob &&
-      false // Disabled auto-transition
+      false
     ) {
       setActiveStep(1);
       hasTransitionedToStep1.current = true;
