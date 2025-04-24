@@ -500,13 +500,6 @@ const Header = () => {
                         Settings
                       </MenuItem>
 
-                      <MenuItem onClick={handleUserMenuClose} sx={{ py: 1.5 }}>
-                        <ListItemIcon>
-                          <HelpOutline fontSize="small" />
-                        </ListItemIcon>
-                        Help Center
-                      </MenuItem>
-
                       <Divider />
 
                       <MenuItem onClick={handleLogout} sx={{ py: 1.5 }}>

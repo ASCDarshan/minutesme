@@ -50,6 +50,7 @@ import MeetingCard from "../components/Dashboard/MeetingCard";
 import MeetingListItem from "../components/Dashboard/MeetingListItem";
 import EmptyState from "../components/Dashboard/EmptyState";
 import { useNavigate } from "react-router-dom";
+import DashboardShimmer from "../components/UI/DashboardShimmer";
 
 const Dashboard = () => {
   const theme = useTheme();
@@ -158,22 +159,31 @@ const Dashboard = () => {
     setNotification({ ...notification, open: false });
   };
 
-  const renderSkeletons = (count) => {
-    return Array(count)
-      .fill(0)
-      .map((_, index) => (
-        <Grid item xs={12} sm={6} md={4} key={`skeleton-${index}`}>
-          <Skeleton
-            variant="rounded"
-            height={viewMode === "grid" ? 220 : 90}
-            sx={{
-              borderRadius: 3,
-              opacity: 1 - index * 0.1,
-            }}
-          />
-        </Grid>
-      ));
-  };
+  if (loading) return (
+    <>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100vh",
+          bgcolor: alpha(theme.palette.background.default, 0.97),
+          backgroundImage: `radial-gradient(${alpha(
+            theme.palette.primary.main,
+            0.05
+          )} 1px, transparent 0)`,
+          backgroundSize: "20px 20px",
+          backgroundPosition: "0 0",
+        }}
+      >
+        <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 }, flexGrow: 1 }}>
+          <Box sx={{ mb: 4 }}>
+            <DashboardShimmer type="statcard" count={4} />
+          </Box>
+          <DashboardShimmer type={viewMode === "grid" ? "card" : "list"} count={6} />
+        </Container>
+      </Box>
+    </>
+  )
 
   return (
     <Box
@@ -487,11 +497,7 @@ const Dashboard = () => {
         </Menu>
 
         <Box sx={{ minHeight: 400 }}>
-          {loading ? (
-            <Grid container spacing={3}>
-              {renderSkeletons(6)}
-            </Grid>
-          ) : error ? (
+          {error ? (
             <Alert
               severity="error"
               sx={{
@@ -521,10 +527,7 @@ const Dashboard = () => {
                     justifyContent: "center",
                     minHeight: 300,
                     borderRadius: 4,
-                    border: `1px solid ${alpha(
-                      theme.palette.primary.main,
-                      0.1
-                    )}`,
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
                     bgcolor: alpha(theme.palette.background.paper, 0.7),
                     backdropFilter: "blur(10px)",
                   }}
@@ -551,8 +554,8 @@ const Dashboard = () => {
                       color="text.secondary"
                       sx={{ mb: 3, maxWidth: 400 }}
                     >
-                      Try different search terms or clear your search to see all
-                      your meetings.
+                      Try different search terms or clear your search to see all your
+                      meetings.
                     </Typography>
                     <Button
                       variant="outlined"
@@ -606,6 +609,7 @@ const Dashboard = () => {
             </AnimatePresence>
           )}
         </Box>
+
       </Container>
 
       <Tooltip title="Record New Meeting">

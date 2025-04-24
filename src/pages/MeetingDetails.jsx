@@ -47,19 +47,14 @@ import {
   NoteAlt,
   Bookmark,
   BookmarkBorder,
-  PlayArrow,
-  Pause,
-  SkipNext,
-  SkipPrevious,
   CheckCircle,
   Public,
   Email,
 } from "@mui/icons-material";
 import moment from "moment";
-import AudioWave from "../components/MeetingDetails/AudioWave";
-import AudioProgress from "../components/MeetingDetails/AudioProgress";
 import AudioPlayer from "../components/MeetingDetails/AudioPlayer";
 import AnimatedSection from "../components/MeetingDetails/AnimatedSection";
+import MeetingDetailsSkeleton from "../components/UI/MeetingDetailsSkeleton";
 
 const TabPanel = (props) => {
   const { children, value, index, ...other } = props;
@@ -160,14 +155,24 @@ const MeetingDetails = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="sm" sx={{ py: 15, textAlign: "center" }}>
-        {" "}
-        <CircularProgress size={60} thickness={4} />{" "}
-        <Typography variant="h6" sx={{ mt: 3 }}>
-          {" "}
-          Loading Meeting Details...{" "}
-        </Typography>{" "}
-      </Container>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100vh",
+          bgcolor: alpha(theme.palette.background.default, 0.97),
+          backgroundImage: `radial-gradient(${alpha(
+            theme.palette.primary.main,
+            0.05
+          )} 1px, transparent 0)`,
+          backgroundSize: "20px 20px",
+          backgroundPosition: "0 0",
+        }}
+      >
+        <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 }, flexGrow: 1 }}>
+          <MeetingDetailsSkeleton activeTab={activeTab} />
+        </Container>
+      </Box>
     );
   }
   if (error) {

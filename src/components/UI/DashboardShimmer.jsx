@@ -1,82 +1,151 @@
-import React from "react";
-import {
-    Box,
-    Skeleton,
-    Stack,
-    Grid,
-    Paper,
-    Divider,
-} from "@mui/material";
+import React from 'react';
+import { Box, Grid, Paper, Skeleton } from '@mui/material';
+import { alpha, keyframes } from '@mui/system';
+import { useTheme } from '@mui/material/styles';
 
-const DashboardShimmer = () => {
+// Create shimmer animation keyframes
+const shimmer = keyframes`
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+`;
+
+const DashboardShimmer = ({ type = 'card', count = 1 }) => {
+    const theme = useTheme();
+
+    // Shimmer overlay styling
+    const shimmerOverlay = {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        animation: `${shimmer} 1.5s infinite linear`,
+        background: `linear-gradient(90deg, 
+      ${alpha(theme.palette.background.paper, 0)} 0%, 
+      ${alpha(theme.palette.background.paper, 0.6)} 50%, 
+      ${alpha(theme.palette.background.paper, 0)} 100%)`,
+        backgroundSize: '200px 100%',
+        zIndex: 1,
+    };
+
+    // Stat Card Skeleton
+    const StatCardSkeleton = () => (
+        <Grid item xs={12} sm={6} md={3}>
+            <Paper
+                elevation={0}
+                sx={{
+                    p: 2.5,
+                    borderRadius: 3,
+                    bgcolor: alpha(theme.palette.background.paper, 0.7),
+                    backdropFilter: 'blur(10px)',
+                    border: `1px solid ${theme.palette.divider}`,
+                    position: 'relative',
+                    overflow: 'hidden',
+                }}
+            >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
+                    <Skeleton variant="circular" width={36} height={36} />
+                    <Skeleton width={40} height={18} />
+                </Box>
+                <Skeleton width={90} height={24} sx={{ mb: 0.5 }} />
+                <Skeleton width={60} height={35} />
+                <Box sx={shimmerOverlay} />
+            </Paper>
+        </Grid>
+    );
+
+    // Meeting Card Skeleton
+    const MeetingCardSkeleton = () => (
+        <Grid item xs={12} sm={6} md={4}>
+            <Paper
+                elevation={0}
+                sx={{
+                    p: 2.5,
+                    borderRadius: 3,
+                    bgcolor: alpha(theme.palette.background.paper, 0.7),
+                    backdropFilter: 'blur(10px)',
+                    border: `1px solid ${theme.palette.divider}`,
+                    position: 'relative',
+                    overflow: 'hidden',
+                    height: 180,
+                }}
+            >
+                <Skeleton width="70%" height={28} sx={{ mb: 1 }} />
+                <Skeleton width="40%" height={20} sx={{ mb: 2 }} />
+                <Skeleton width="100%" height={16} sx={{ mb: 1 }} />
+                <Skeleton width="90%" height={16} sx={{ mb: 1 }} />
+                <Skeleton width="60%" height={16} sx={{ mb: 1 }} />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, pt: 1 }}>
+                    <Skeleton width={80} height={32} />
+                    <Skeleton width={80} height={32} />
+                </Box>
+                <Box sx={shimmerOverlay} />
+            </Paper>
+        </Grid>
+    );
+
+    // Meeting List Item Skeleton
+    const MeetingListItemSkeleton = () => (
+        <Paper
+            elevation={0}
+            sx={{
+                p: 2,
+                borderRadius: 3,
+                bgcolor: alpha(theme.palette.background.paper, 0.7),
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${theme.palette.divider}`,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 2,
+                position: 'relative',
+                overflow: 'hidden',
+            }}
+        >
+            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+                <Skeleton variant="circular" width={40} height={40} sx={{ mr: 2 }} />
+                <Box>
+                    <Skeleton width={200} height={24} sx={{ mb: 0.5 }} />
+                    <Skeleton width={120} height={16} />
+                </Box>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Skeleton width={80} height={32} sx={{ mr: 1 }} />
+                <Skeleton width={80} height={32} />
+            </Box>
+            <Box sx={shimmerOverlay} />
+        </Paper>
+    );
+
+    // Generate the right number of skeletons
+    const renderSkeletons = () => {
+        const skeletons = [];
+        for (let i = 0; i < count; i++) {
+            if (type === 'card') {
+                skeletons.push(<MeetingCardSkeleton key={`card-skeleton-${i}`} />);
+            } else if (type === 'statcard') {
+                skeletons.push(<StatCardSkeleton key={`stat-skeleton-${i}`} />);
+            } else if (type === 'list') {
+                skeletons.push(<MeetingListItemSkeleton key={`list-skeleton-${i}`} />);
+            }
+        }
+        return skeletons;
+    };
+
     return (
-        <Box sx={{ px: 4, py: 3 }}>
-            {/* Header Greeting */}
-            <Skeleton variant="text" width={280} height={40} sx={{ mb: 1 }} />
-            <Skeleton variant="text" width={340} height={24} sx={{ mb: 4 }} />
-
-            {/* Stat Cards */}
-            <Grid container spacing={3} sx={{ mb: 5 }}>
-                {[...Array(4)].map((_, idx) => (
-                    <Grid item xs={12} sm={6} md={3} key={idx}>
-                        <Skeleton
-                            variant="rounded"
-                            height={110}
-                            sx={{ borderRadius: 6 }}
-                        />
-                    </Grid>
-                ))}
-            </Grid>
-
-            {/* Search & Action Bar */}
-            <Paper
-                elevation={0}
-                sx={{
-                    borderRadius: 6,
-                    px: 3,
-                    py: 2,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    mb: 3,
-                }}
-            >
-                <Stack direction="row" alignItems="center" spacing={2}>
-                    <Skeleton variant="text" width={120} height={28} />
-                    <Skeleton variant="circular" width={22} height={22} />
-                </Stack>
-
-                <Stack direction="row" alignItems="center" spacing={2}>
-                    <Skeleton variant="rounded" width={200} height={36} />
-                    <Skeleton variant="rounded" width={40} height={36} />
-                    <Skeleton variant="rounded" width={40} height={36} />
-                    <Skeleton variant="rounded" width={120} height={40} />
-                </Stack>
-            </Paper>
-
-            {/* Meeting List Card */}
-            <Paper
-                elevation={0}
-                sx={{
-                    borderRadius: 6,
-                    px: 3,
-                    py: 2,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    mb: 2,
-                }}
-            >
-                <Stack direction="row" alignItems="center" spacing={2}>
-                    <Skeleton variant="circular" width={40} height={40} />
-                    <Box>
-                        <Skeleton variant="text" width={100} height={24} />
-                        <Skeleton variant="text" width={180} height={20} />
-                    </Box>
-                </Stack>
-                <Skeleton variant="rounded" width={80} height={28} />
-            </Paper>
-        </Box>
+        <>
+            {type === 'list' ? (
+                <Box>{renderSkeletons()}</Box>
+            ) : (
+                <Grid container spacing={3}>
+                    {renderSkeletons()}
+                </Grid>
+            )}
+        </>
     );
 };
 
